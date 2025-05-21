@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
 import BubblePop from './BubblePop';
+import BubblePop from './BubblePop';
 import BubbleGame from './BubbleGame';
 
 const BookIcon = getIcon('book');
@@ -71,7 +72,17 @@ const subjects = [
       {
         id: 3,
         question: "What is the largest planet in our solar system?",
-        options: ["Earth", "Mars", "Venus", "Jupiter"],
+    },
+    {
+      id: "bubble-pop-game",
+      title: "Bubble Pop Game",
+      subtitle: "Pop bubbles with odd or even numbers as they float up",
+      icon: "sparkles",
+      color: "bg-blue-100 dark:bg-blue-900/30 text-blue-500 dark:text-blue-300",
+      component: (props) => (
+        <BubblePop {...props} />
+      )
+    },
         correctAnswer: "Jupiter",
         explanation: "Jupiter is the largest planet in our solar system"
       }
@@ -304,7 +315,7 @@ const MainFeature = ({ grade }) => {
 
   const handleRestartQuiz = () => {
     setCurrentQuestion(0);
-    setSelectedAnswer(null);
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6 pb-4">
     setAnswered(false);
     setScore(0);
     setQuizComplete(false);
@@ -362,7 +373,8 @@ const MainFeature = ({ grade }) => {
                       `${subject.questions.length} questions` : 
                       subject.isGame ? 'Interactive Game' : '0 questions'}
                   </p>
-                </motion.div>
+            </div>
+          </AnimatePresence>
               ))}
             </div>
           </motion.div>

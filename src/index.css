@@ -408,6 +408,7 @@
   }
 
   /* Bubble Pop Game Styles */
+  /* Using the existing bubble style from above */
   .bubble {
     background: radial-gradient(
       circle at 30% 30%,
@@ -440,7 +441,7 @@
     transform: scale(0.95);
   }
   
-  /* Bubble pop animation */
+  /* Bubble pop animation - ensuring it doesn't conflict with existing animations */
   @keyframes bubble-pop {
     0% {
       transform: scale(1);
@@ -460,7 +461,7 @@
     animation: bubble-pop 0.3s ease-out forwards;
   }
   
-  /* Bubble float animation */
+  /* Bubble float animation - enhanced for the bubble pop game */
   @keyframes bubble-float {
     0% {
       transform: translateY(0) translateX(0);
