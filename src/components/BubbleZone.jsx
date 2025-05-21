@@ -17,6 +17,6 @@ const BubbleZone = forwardRef(({ children, title }, ref) => {
       {children}
     </motion.div>
   );
-});
+      <div ref={ref} className="w-full h-[500px] py-4 relative overflow-hidden">
 
 export default BubbleZone;

@@ -18,7 +18,7 @@ const FloatingBubble = ({ bubble, onClick, onComplete }) => {
       className="bubble absolute cursor-pointer"
       initial={{ y: 0, opacity: 0.8 }}
       animate={{ y: -600, opacity: 1 }}
-      transition={{ duration: 10, ease: 'linear' }}
+      transition={{ duration: 6, ease: 'linear' }}
       style={{
         x: `${bubble.x}%`,
         left: `${bubble.x}%`,
@@ -45,7 +45,7 @@ const BubblePop = ({ onBack }) => {
   const [showInstructions, setShowInstructions] = useState(true);
   const [currentRule, setCurrentRule] = useState('odd');
   const [bubblesPopped, setBubblesPopped] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(120);
+  const [timeRemaining, setTimeRemaining] = useState(60);
 
   const playAreaRef = useRef(null);
 
@@ -57,7 +57,7 @@ const BubblePop = ({ onBack }) => {
     setLives(3);
     setGameOver(false);
     setBubblesPopped(0);
-    setTimeRemaining(120);
+    setTimeRemaining(60);
     setCurrentRule(Math.random() > 0.5 ? 'odd' : 'even');
     setBubbles([]);
     toast.success(`Game started! Pop the ${currentRule.toUpperCase()} numbers!`);
@@ -79,10 +79,10 @@ const BubblePop = ({ onBack }) => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (gameActive && !gameOver && timeRemaining > 0 && bubbles.length < 15) {
+      if (gameActive && !gameOver && timeRemaining > 0 && bubbles.length < 30) {
         setBubbles(prev => [...prev, generateBubble()]);
       }
-    }, 1000);
+    }, 500);
 
     return () => clearInterval(interval);
   }, [gameActive, gameOver, bubbles, timeRemaining]);
@@ -177,8 +177,16 @@ const BubblePop = ({ onBack }) => {
       {gameActive && (
         <div className="card p-6 mb-6 relative overflow-hidden min-h-[500px]">
           <div className="flex justify-between mb-4">
-            <div>Level: {level} | Score: {score}</div>
-            <div>Lives: {'❤️'.repeat(lives)} | Time: {Math.floor(timeRemaining / 60)}:{`${timeRemaining % 60}`.padStart(2, '0')}</div>
+            <div>Level: {level} | Score: {score} | Lives: {'❤️'.repeat(lives)}</div>
+          </div>
+          
+          {/* Fixed Timer at Top */}
+          <div className="fixed top-2 left-0 right-0 z-50 flex justify-center">
+            <div className={`timer-display text-xl font-bold bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-lg 
+              ${timeRemaining <= 10 ? 'text-red-600 animate-pulse' : timeRemaining <= 30 ? 'text-orange-500' : 'text-blue-600'}`} 
+              style={{animation: timeRemaining <= 10 ? 'pulse 0.5s infinite' : 'none'}}>
+              Time: {Math.floor(timeRemaining / 60)}:{`${timeRemaining % 60}`.padStart(2, '0')}
+            </div>
           </div>
           <BubbleZone title={`POP ${currentRule.toUpperCase()} NUMBERS!`} ref={playAreaRef}>
             <AnimatePresence>
