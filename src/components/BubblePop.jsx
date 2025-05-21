@@ -174,12 +174,10 @@ const BubblePop = ({ onBack }) => {
     // If all attempts failed, just return a random position anyway
     return { 
       x: 5 + Math.random() * 90,
-      size: Math.random() * (maxSize - minSize) + minSize
+      size: Math.random() * (maxSize - minSize) + minSize 
     };
-  };
-
-  // Continuously generate new bubbles
-  useEffect(() => {
+    }
+  }
     if (gameActive && bubbles.length < Math.min(Math.max(10, level + 9), 15)) {
       const timer = setInterval(() => { 
         if (gameActive && !gameOver) {
@@ -187,13 +185,36 @@ const BubblePop = ({ onBack }) => {
           const { x, size } = findFreePosition(40, 60);
   // Continuously generate new bubbles at a rate appropriate for the level
           const newBubble = {
-            id: Date.now(),
+            id: Date.now() + Math.random(),
+            isOdd: num % 2 !== 0,
+            x: x, // Position from findFreePosition
+            y: 100,
+          for (let i = Math.max(0, safeGridX - halfBubbleWidth); 
+               i <= Math.min(GRID_COLS - 1, safeGridX + halfBubbleWidth); i++) {
+            occupiedPositionsRef.current[i].push({
+              id: Date.now() + Math.random(),
+              y: 100, // Bottom of container
+              size
+            });
+          }
+            size, // Use the size from findFreePosition
+            speed: 2 + Math.random() * (level * 0.5),
+          setBubbles(prev => [...prev, newBubble]);
+        }
+      }, 500); // Generate a new bubble every 0.5 seconds
+
+      return () => clearInterval(timer);
+    }
+
+  // Continuously generate new bubbles
+  useEffect(() => {
+    if (gameActive && bubbles.length < Math.min(Math.max(10, level + 9), 15)) {
       // Adjust generation speed based on level - higher levels = faster generation
       const generationSpeed = Math.max(300, 600 - (level * 30));
       
       const timer = setInterval(() => {
-            isOdd: num % 2 !== 0,
-            x: x, // Position from findFreePosition
+        if (gameActive && !gameOver) {
+          const num = Math.floor(Math.random() * 100) + 1;
           const { x, size } = findFreePosition(45, 65); // Slightly larger bubbles
           
           // Mark this position as occupied in the grid
@@ -213,20 +234,28 @@ const BubblePop = ({ onBack }) => {
               size
             });
           }
-            size, // Use the size from findFreePosition
+          
           // Add the new bubble to the game
-            speed: 2 + Math.random() * (level * 0.5),
+          const newBubble = {
             id: Date.now() + Math.random(),
+            number: num,
+            isOdd: num % 2 !== 0,
+            x: x, // Position from findFreePosition
+            y: 100,
+            size, // Use the size from findFreePosition
+            speed: 2 + Math.random() * (level * 0.5)
+          };
+          
           setBubbles(prev => [...prev, newBubble]);
         }
-      }, 500); // Generate a new bubble every 0.5 seconds
+      }, generationSpeed);
 
       return () => clearInterval(timer);
     }
   }, [bubbles.length, gameActive, gameOver, level]);
 
   // Handle bubbles that need to be removed after animation completes
-      }, generationSpeed);
+  useEffect(() => {
     if (bubblesToRemoveRef.current.size > 0) {
       const bubblesIdsToRemove = Array.from(bubblesToRemoveRef.current);
       setBubbles(prev => prev.filter(b => !bubblesIdsToRemove.includes(b.id)));
@@ -236,11 +265,6 @@ const BubblePop = ({ onBack }) => {
       
       // Also clean up old entries in occupiedPositionsRef
       // This helps prevent memory leaks and keeps collision detection accurate
-      Object.keys(occupiedPositionsRef.current).forEach(gridX => {
-
-      });
-    }
-  }, [bubblesToRemoveRef.current.size]);
       // Update grid structure - calculate more accurately when bubbles leave the screen
       // This cleans up positions for better collision detection
       for (let col = 0; col < GRID_COLS; col++) {
@@ -248,8 +272,8 @@ const BubblePop = ({ onBack }) => {
         // y < 0 means they've left the top of the screen, but we give some buffer room
         occupiedPositionsRef.current[col] = occupiedPositionsRef.current[col].filter(b => b.y > -20);
       }
-      
-
+    }
+  }, [bubblesToRemoveRef.current.size]);
   // Timer countdown for 2 minutes of continuous play
   useEffect(() => {
     if (gameActive && !gameOver && timeRemaining > 0) {
