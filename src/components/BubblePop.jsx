@@ -56,8 +56,8 @@ const BubblePop = ({ onBack }) => {
         number: num,
         isOdd: num % 2 !== 0,
         x: Math.random() * 100, // Full screen width (0-100%)
-        y: 110 + Math.random() * 10, // Start below the visible area
-        size: Math.random() * 20 + 50, // Size between 50-70px
+        y: 110 + Math.random() * 20, // Start below the visible area
+        size: Math.random() * 20 + 50, // Size between 50-70px (diameter)
         speed: 2 + Math.random() * (level * 0.5), // Speed increases with level
       });
     }
@@ -75,8 +75,8 @@ const BubblePop = ({ onBack }) => {
             number: Math.floor(Math.random() * 100) + 1,
             isOdd: false, // Will be set properly below
             x: Math.random() * 100, // Full screen width (0-100%)
-            y: 110 + Math.random() * 20,
-            size: Math.random() * 20 + 50,
+            y: 110 + Math.random() * 20, // Start below the visible area
+            size: Math.random() * 20 + 50, // Size between 50-70px
             speed: 2 + Math.random() * (level * 0.5),
           };
           newBubble.isOdd = newBubble.number % 2 !== 0;
@@ -258,11 +258,11 @@ const BubblePop = ({ onBack }) => {
                    initial={{ x: `${bubble.x}%`, y: `${bubble.y}%`, opacity: 0.7 }}
                    animate={{ 
                      y: [null, '-120%'], 
-                     x: [`${bubble.x}%`, `${bubble.x - 30 + Math.random() * 60}%`], 
+                      x: [`${bubble.x}%`, `${bubble.x - 15 + Math.random() * 30}%`], 
                      opacity: [0.7, 1, 0.7] 
                    }}
                    exit={{ scale: 1.5, opacity: 0 }}
-                  transition={{ y: { duration: 8 / bubble.speed, ease: "linear" }, x: { duration: 3 + Math.random() * 4, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }, opacity: { duration: 8 / bubble.speed, times: [0, 0.5, 1], ease: "linear" } }}
+                   transition={{ y: { duration: 8 / bubble.speed, ease: "linear" }, x: { duration: 3 + Math.random() * 4, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }, opacity: { duration: 8 / bubble.speed, times: [0, 0.5, 1], ease: "linear" } }}
                    onClick={() => handleBubbleTap(bubble)} 
                    className="bubble absolute cursor-pointer"
                   style={{ width: `${bubble.size}px`, height: `${bubble.size}px` }}
