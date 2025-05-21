@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
+import BubblePop from './BubblePop';
 import BubbleGame from './BubbleGame';
 
 const BookIcon = getIcon('book');
@@ -163,6 +164,7 @@ const MainFeature = ({ grade }) => {
   const [timeLeft, setTimeLeft] = useState(30);
   const [timerActive, setTimerActive] = useState(false);
   const [playingBubbleGame, setPlayingBubbleGame] = useState(false);
+  const [playingBubblePop, setPlayingBubblePop] = useState(false);
   const timerRef = useRef(null);
 
   const handleSubjectSelect = (subject) => {
@@ -184,8 +186,8 @@ const MainFeature = ({ grade }) => {
     } else if (subject.id === 'bubble-pop') {
       // Start the bubble game
       setPlayingBubbleGame(true);
+      setPlayingBubblePop(true);
       return;
-    }
 
 
   };
@@ -199,6 +201,7 @@ const MainFeature = ({ grade }) => {
     setTimeLeft(30);
     setWaterEffect(false);
     clearInterval(timerRef.current);
+    setPlayingBubblePop(false);
     setPlayingBubbleGame(false);
   };
 
@@ -310,7 +313,9 @@ const MainFeature = ({ grade }) => {
   return (
     <div className="mb-16">
       <AnimatePresence mode="wait">
-        {playingBubbleGame ? (
+        {playingBubblePop ? (
+          <BubblePop onBack={handleBackToSubjects} />
+        ) : playingBubbleGame ? (
           <BubbleGame onBack={handleBackToSubjects} />
         ) : !selectedSubject ? (
           <motion.div
