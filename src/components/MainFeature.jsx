@@ -419,7 +419,11 @@ const MainFeature = ({ grade }) => {
               </h2>
             </div>
             
-            <div className="bg-white dark:bg-surface-800 rounded-xl shadow-card p-6">
+            <div className={`bg-white dark:bg-surface-800 rounded-xl shadow-card p-6 
+                ${selectedSubject.id === 'math' ? 'question-container' : ''}`}
+                data-time-percent={selectedSubject.id === 'math' ? ((30 - timeLeft) / 30) * 100 : 0}
+                style={selectedSubject.id === 'math' ? {'--lava-height': `${((30 - timeLeft) / 30) * 100}%`} : {}}
+            >
               <div className="flex justify-between items-center mb-4">
                 <span className="text-surface-500 dark:text-surface-400">
                   Question {currentQuestion + 1} of {selectedSubject.questions.length}
@@ -528,6 +532,9 @@ const MainFeature = ({ grade }) => {
                 </motion.div>
               )}
             </div>
+            {selectedSubject.id === 'math' && (
+              <div className="lava-background"></div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
