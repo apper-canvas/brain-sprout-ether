@@ -254,14 +254,17 @@ const BubblePop = ({ onBack }) => {
             <AnimatePresence>
               {bubbles.map(bubble => (
                 <motion.div
-                  key={bubble.id}
-                  initial={{ x: `${bubble.x}%`, y: `${bubble.y}%`, opacity: 0.7 }}
-                  animate={{ y: [null, '-120%'], x: [`${bubble.x}%`, `${bubble.x - 15 + Math.random() * 30}%`], opacity: [0.7, 1, 0.7] }}
-                  whileInView={{ x: [`${bubble.x - 20 + Math.random() * 40}%`, `${bubble.x - 25 + Math.random() * 50}%`] }}
-                  exit={{ scale: 1.5, opacity: 0 }}
-                  transition={{ y: { duration: 8 / bubble.speed, ease: "linear" }, x: { duration: 3 + Math.random() * 2, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }, opacity: { duration: 8 / bubble.speed, times: [0, 0.5, 1], ease: "linear" } }}
-                  onClick={() => handleBubbleTap(bubble)} 
-                  className="bubble absolute cursor-pointer"
+                   key={bubble.id}
+                   initial={{ x: `${bubble.x}%`, y: `${bubble.y}%`, opacity: 0.7 }}
+                   animate={{ 
+                     y: [null, '-120%'], 
+                     x: [`${bubble.x}%`, `${bubble.x - 30 + Math.random() * 60}%`], 
+                     opacity: [0.7, 1, 0.7] 
+                   }}
+                   exit={{ scale: 1.5, opacity: 0 }}
+                   transition={{ y: { duration: 8 / bubble.speed, ease: "linear" }, x: { duration: 3 + Math.random() * 4, repeat: Infinity, repeatType: "mirror", ease: ["easeInOut", "easeOutIn"] }, opacity: { duration: 8 / bubble.speed, times: [0, 0.5, 1], ease: "linear" } }}
+                   onClick={() => handleBubbleTap(bubble)} 
+                   className="bubble absolute cursor-pointer"
                   style={{ width: `${bubble.size}px`, height: `${bubble.size}px` }}
                 >
                   <span className="text-xl font-bold">{bubble.number}</span>
