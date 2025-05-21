@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useAnimationFrame } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
 import BubbleZone from './BubbleZone';
@@ -10,6 +10,47 @@ const ArrowLeftIcon = getIcon('arrow-left');
 const StarIcon = getIcon('star');
 const RefreshCwIcon = getIcon('refresh-cw');
 const InfoIcon = getIcon('info');
+
+// Safe floating bubble component using useMotionValue
+const FloatingBubble = ({ bubble, onComplete, onClick }) => {
+  const x = useMotionValue(bubble.x);
+  const y = useMotionValue(100); // Start at bottom (100vh)
+  const scale = useMotionValue(1);
+  const opacity = useMotionValue(0.9);
+  
+  // Generate safe random values for animation
+  const amplitude = Math.max(5, Math.min(15, 5 + Math.random() * 15)); // 5-20px
+  const frequency = 0.5 + Math.random() * 0.5; // 0.5-1 Hz
+  const upwardSpeed = 10; // Pixels per second upward movement
+  const start = performance.now();
+
+  // Use animation frame for smooth animation
+  useAnimationFrame(() => {
+    const elapsed = (performance.now() - start) / 1000; // Convert to seconds
+    
+    // Safe calculation of sine wave
+    let sineValue = amplitude * Math.sin(frequency * elapsed);
+    if (isNaN(sineValue)) sineValue = 0;
+    
+    // Update positions
+    const newX = bubble.x + sineValue;
+    const newY = 100 - (upwardSpeed * elapsed); // Move up from bottom
+    
+    x.set(newX);
+    y.set(newY);
+    
+    // Trigger completion when bubble is off-screen
+    if (newY < -20) onComplete(bubble.id);
+  });
+
+  return (
+    <motion.div className="bubble absolute cursor-pointer"
+      style={{ x, y, scale, opacity, width: `${bubble.size}px`, height: `${bubble.size}px` }}
+      onClick={() => onClick(bubble)}>
+      <span className="text-xl font-bold">{bubble.number}</span>
+    </motion.div>
+  );
+};
 
 const BubblePop = ({ onBack }) => {
   const [gameActive, setGameActive] = useState(false);
@@ -375,21 +416,6 @@ const BubblePop = ({ onBack }) => {
   // Determine if time is running low (less than 30 seconds)
   const isTimeRunningLow = timeRemaining <= 30;
 
-  // Create random path for bubble movement
-  const createRandomPath = (bubble) => {
-    const points = [];
-    const numPoints = Math.floor(Math.random() * 6) + 5; // 5-10 points
-    
-    for (let i = 0; i < numPoints; i++) {
-      // Create random variations around the starting position
-      const xOffset = (Math.random() * 40 - 20) * (bubble.speedX > 0 ? 1 : -1);
-      const yOffset = (Math.random() * 40 - 20) * (bubble.speedY > 0 ? 1 : -1);
-      
-      points.push(`calc(${bubble.x}% + ${xOffset}px)`, `calc(${bubble.y}% + ${yOffset}px)`);
-    }
-    
-    return points;
-  };
 
 
   return (
@@ -505,53 +531,12 @@ const BubblePop = ({ onBack }) => {
           <BubbleZone title={`POP ${currentRule.toUpperCase()} NUMBERS!`} ref={playAreaRef}>
             <AnimatePresence>
               {bubbles.map(bubble => (
-                // Calculate random values for each bubble's animation
-                <motion.div
+                <FloatingBubble
                   key={bubble.id}
-                  initial={{ y: "100vh" }}
-                  animate={{
-                    y: "-100vh",
-                    x: [
-                      `${bubble.x}%`,
-                      `calc(${bubble.x}% + ${5 + Math.random() * 15}px)`,
-                      `${bubble.x}%`,
-                      `calc(${bubble.x}% - ${5 + Math.random() * 15}px)`,
-                      `${bubble.x}%`
-                    ],
-                    scale: [1, 1.02, 0.98, 1.01, 1],
-                    opacity: [0.9, 1, 0.8]
-                  }}
-                  exit={{
-                    opacity: 0,
-                    scale: 0.8,
-                    transition: { duration: 0.3 }
-                  }}
-                  transition={{
-                    y: { duration: 10, ease: "linear" },
-                    x: {
-                      duration: 2.5 + Math.random() * 1,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      times: [0, 0.25, 0.5, 0.75, 1]
-                    },
-                    opacity: { duration: 10, times: [0, 0.5, 1], ease: "linear" }
-                  }}
-                  onClick={() => handleBubbleTap(bubble)} 
-                  onAnimationComplete={(definition) => {
-                    // Only remove the bubble when it's fully off the top of the screen
-                    if (definition === "y") {
-                      bubblesToRemoveRef.current.add(bubble.id);
-                    }
-                   }}
-                  className="bubble absolute cursor-pointer"
-                  // Set custom CSS variables for the sine wave animation
-                  style={{ 
-                    width: `${bubble.size}px`,
-                    height: `${bubble.size}px`,
-                    "--amplitude": `${5 + Math.random() * 15}px` // Random amplitude between 5px and 20px
-                  }}>
-                  <span className="text-xl font-bold">{bubble.number}</span>
-                </motion.div>
+                  bubble={bubble}
+                  onClick={handleBubbleTap}
+                  onComplete={(id) => bubblesToRemoveRef.current.add(id)}
+                />
               ))}
             </AnimatePresence>
           </BubbleZone>
