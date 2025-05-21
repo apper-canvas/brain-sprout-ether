@@ -79,16 +79,58 @@
   /* Rising lava background animation */
   @keyframes lava-rise {
     0% {
-      background-position: 0% 50%;
-      box-shadow: 0 0 15px 5px rgba(255, 85, 0, 0.5);
+      background-position: 0% 0%;
+      box-shadow: 0 0 20px 5px rgba(255, 85, 0, 0.6);
     }
     50% {
-      background-position: 100% 50%;
-      box-shadow: 0 0 25px 8px rgba(255, 65, 0, 0.6);
+      background-position: 100% 100%;
+      box-shadow: 0 0 30px 10px rgba(255, 65, 0, 0.7);
     }
     100% {
-      background-position: 0% 50%;
-      box-shadow: 0 0 15px 5px rgba(255, 85, 0, 0.5);
+      background-position: 0% 0%;
+      box-shadow: 0 0 20px 5px rgba(255, 85, 0, 0.6);
+    }
+  }
+  
+  @keyframes lava-bubble {
+    0% {
+      transform: translateY(0) scale(1);
+      opacity: 0.9;
+    }
+    50% {
+      transform: translateY(-40px) scale(1.2);
+      opacity: 0.7;
+    }
+    100% {
+      transform: translateY(-80px) scale(0.8);
+      opacity: 0;
+    }
+  }
+  
+  @keyframes lava-flow {
+    0% {
+      transform: translateX(-5px);
+    }
+    50% {
+      transform: translateX(5px);
+    }
+    100% {
+      transform: translateX(-5px);
+    }
+  }
+  
+  @keyframes lava-glow {
+    0% {
+      filter: brightness(1) saturate(1);
+      text-shadow: 0 0 5px rgba(255, 85, 0, 0.7);
+    }
+    50% {
+      filter: brightness(1.2) saturate(1.1);
+      text-shadow: 0 0 8px rgba(255, 65, 0, 0.8);
+    }
+    100% {
+      filter: brightness(1) saturate(1);
+      text-shadow: 0 0 5px rgba(255, 85, 0, 0.7);
     }
   }
 
@@ -109,17 +151,33 @@
     z-index: -1;
     height: var(--lava-height, 0%);
     background: linear-gradient(
-      45deg,
-      rgba(255, 50, 0, 0.9),
-      rgba(255, 120, 0, 0.8),
-      rgba(255, 160, 0, 0.85)
+      135deg,
+      rgba(255, 30, 0, 0.95),
+      rgba(255, 80, 0, 0.9),
+      rgba(255, 140, 0, 0.85),
+      rgba(255, 60, 0, 0.9)
     );
-    background-size: 200% 200%;
-    animation: lava-rise 2s ease infinite;
+    background-size: 300% 300%;
+    animation: lava-rise 3s ease infinite;
     transition: height 1s ease-in-out;
-    box-shadow: 0 -8px 20px -2px rgba(255, 100, 0, 0.6);
+    box-shadow: 
+      0 -10px 25px -2px rgba(255, 100, 0, 0.7),
+      0 0 15px 5px rgba(255, 50, 0, 0.5) inset;
     transform-origin: bottom;
     mix-blend-mode: multiply;
+    overflow: hidden;
+  }
+  
+  .lava-background::before,
+  .lava-background::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: rgba(255, 200, 0, 0.8);
+    border-radius: 50%;
+    box-shadow: 0 0 10px 5px rgba(255, 160, 0, 0.6);
+    filter: blur(2px);
   }
 
   /* Lava animation for timer */
@@ -147,14 +205,15 @@
   .lava-effect {
     background: linear-gradient(
       45deg, 
-      rgba(255, 50, 0, 0.9), 
-      rgba(255, 120, 0, 0.8), 
+      rgba(255, 40, 0, 0.95), 
+      rgba(255, 100, 0, 0.8), 
       rgba(255, 160, 0, 0.85)
     );
     background-size: 200% 200%;
-    animation: lava-bubble 3s ease infinite;
+    animation: lava-bubble 3s ease infinite, lava-glow 2s infinite;
     color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 15px 5px rgba(255, 70, 0, 0.4);
   }
 
   .lava-effect-urgent {
@@ -162,14 +221,78 @@
       45deg, 
       rgba(255, 0, 0, 0.95), 
       rgba(255, 60, 0, 0.9), 
-      rgba(255, 100, 0, 0.95)
+      rgba(255, 120, 0, 0.95)
     );
     background-size: 200% 200%;
-    animation: lava-bubble 1.5s ease infinite;
+    animation: lava-bubble 1.5s ease infinite, lava-glow 1s infinite;
     color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 0 20px 8px rgba(255, 50, 0, 0.5);
   }
-
+  
+  /* Add lava bubble particles */
+  .lava-background::before {
+    left: 20%;
+    bottom: 10%;
+    animation: lava-bubble 6s ease-in-out infinite;
+    animation-delay: 0.5s;
+  }
+  
+  .lava-background::after {
+    left: 65%;
+    bottom: 15%;
+    width: 15px;
+    height: 15px;
+    opacity: 0.9;
+    animation: lava-bubble 7s ease-in-out infinite;
+    animation-delay: 1s;
+  }
+  
+  /* Add more bubbles using pseudo elements on container */
+  .question-container::before,
+  .question-container::after {
+    content: '';
+    position: absolute;
+    bottom: 5%;
+    width: 8px;
+    height: 8px;
+    background: rgba(255, 180, 0, 0.7);
+    border-radius: 50%;
+    z-index: -1;
+    opacity: 0;
+    box-shadow: 0 0 8px 4px rgba(255, 120, 0, 0.4);
+    filter: blur(1px);
+    transition: opacity 0.5s ease;
+  }
+  
+  .question-container::before {
+    left: 40%;
+    animation: lava-bubble 8s ease-in-out infinite;
+    animation-delay: 2s;
+  }
+  
+  .question-container::after {
+    left: 80%;
+    animation: lava-bubble 5s ease-in-out infinite;
+    animation-delay: 1.5s;
+  }
+  
+  /* Only show bubbles when lava is visible */
+  .question-container:has(.lava-background[style*="--lava-height: 0%"]) {
+    &::before,
+    &::after {
+      opacity: 0;
+    }
+  }
+  
+  /* Show bubbles when lava is rising */
+  .question-container:has(.lava-background[style*="--lava-height:"]:not([style*="--lava-height: 0%"])) {
+    &::before,
+    &::after {
+      opacity: 1;
+    }
+  }
+  
   /* Water ripple effect animation */
   @keyframes water-ripple {
     0% {
@@ -183,6 +306,23 @@
     100% {
       box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
       transform: scale(1);
+      opacity: 0.8;
+    }
+  }
+  
+  /* Water wave animation */
+  @keyframes water-wave {
+    0% {
+      background-position: 0% 50%;
+      opacity: 0.8;
+    }
+    50% {
+      background-position: 100% 50%;
+      opacity: 0.9;
+    }
+    100% {
+      background-position: 0% 50%;
+      opacity: 0.8;
     }
   }
 
@@ -204,13 +344,19 @@
     right: 0;
     bottom: 0;
     background: linear-gradient(
-      45deg,
-      rgba(59, 130, 246, 0.7),
-      rgba(37, 99, 235, 0.6),
-      rgba(59, 130, 246, 0.8)
+      135deg,
+      rgba(37, 99, 235, 0.75),
+      rgba(59, 130, 246, 0.65),
+      rgba(96, 165, 250, 0.7),
+      rgba(59, 130, 246, 0.65)
     );
+    background-size: 400% 400%;
     border-radius: inherit;
     z-index: 1;
+    animation: 
+      water-fill 1s ease-out forwards,
+      water-wave 6s ease-in-out infinite;
+    backdrop-filter: blur(1px);
     opacity: 0;
     animation: water-fill 1s ease-out forwards;
     box-shadow: 0 0 20px 5px rgba(59, 130, 246, 0.4) inset;
@@ -227,6 +373,34 @@
     100% {
       opacity: 0.8;
       transform: translateY(0%);
+  /* Enhanced water ripple effect */
+  @keyframes water-ripples {
+    0% {
+      transform: scale(0);
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+    100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+  
+  /* Additional water shimmer effect */
+  @keyframes water-shimmer {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
     }
   }
 
@@ -238,17 +412,21 @@
     right: 0;
     bottom: 0;
     background: radial-gradient(
-      circle,
-      rgba(59, 130, 246, 0.6) 0%,
-      rgba(59, 130, 246, 0.4) 30%,
-      rgba(59, 130, 246, 0) 70%
+      circle at center,
+      rgba(147, 197, 253, 0.8) 0%,
+      rgba(96, 165, 250, 0.6) 25%,
+      rgba(59, 130, 246, 0.4) 50%,
+      rgba(37, 99, 235, 0.2) 75%,
+      rgba(59, 130, 246, 0) 100%
     );
+    border-radius: inherit;
     opacity: 0;
-    animation: wave-fade 1s ease-out forwards;
+    animation: water-ripples 2s ease-out forwards;
+    filter: blur(2px);
   }
 
   @keyframes wave-fade {
     0% { opacity: 0.8; transform: scale(0.5); }
     100% { opacity: 0; transform: scale(2); }
-  }  
+  }
 }

@@ -428,7 +428,7 @@ const MainFeature = ({ grade }) => {
             <div className={`bg-white dark:bg-surface-800 rounded-xl shadow-card p-6 
                 ${selectedSubject.id === 'math' ? `question-container relative ${waterEffect ? 'container-water-effect' : ''}` : ''}`}
             >
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex justify-between items-center mb-4 relative z-10">
                 <span className="text-surface-500 dark:text-surface-400">
                   Question {currentQuestion + 1} of {selectedSubject.questions.length}
                 </span>
@@ -436,6 +436,14 @@ const MainFeature = ({ grade }) => {
                 {selectedSubject.id === 'math' && (
                   <div className="lava-background" 
                        style={{'--lava-height': `${((30 - timeLeft) / 30) * 100}%`}}></div>
+                  /* Add additional lava bubble elements */
+                  <div className="lava-bubble-1" style={{
+                    '--bubble-delay': '0.7s',
+                    '--bubble-size': '12px', 
+                    '--bubble-left': '25%',
+                    '--bubble-duration': '4s',
+                    opacity: timeLeft < 20 ? 1 : 0
+                  }}></div>
                 )}
 
                 <div className="flex items-center space-x-3">
