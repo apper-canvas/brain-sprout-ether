@@ -75,4 +75,96 @@
   .text-shadow {
     text-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
+
+  /* Lava animation for timer */
+  @keyframes lava-bubble {
+    0% {
+      box-shadow: 0 0 8px 2px rgba(255, 100, 0, 0.7);
+      background-position: 0% 50%;
+    }
+    25% {
+      box-shadow: 0 0 12px 3px rgba(255, 70, 0, 0.8);
+    }
+    50% {
+      box-shadow: 0 0 16px 4px rgba(255, 40, 0, 0.9);
+      background-position: 100% 50%;
+    }
+    75% {
+      box-shadow: 0 0 12px 3px rgba(255, 70, 0, 0.8);
+    }
+    100% {
+      box-shadow: 0 0 8px 2px rgba(255, 100, 0, 0.7);
+      background-position: 0% 50%;
+    }
+  }
+
+  .lava-effect {
+    background: linear-gradient(
+      45deg, 
+      rgba(255, 50, 0, 0.9), 
+      rgba(255, 120, 0, 0.8), 
+      rgba(255, 160, 0, 0.85)
+    );
+    background-size: 200% 200%;
+    animation: lava-bubble 3s ease infinite;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+
+  .lava-effect-urgent {
+    background: linear-gradient(
+      45deg, 
+      rgba(255, 0, 0, 0.95), 
+      rgba(255, 60, 0, 0.9), 
+      rgba(255, 100, 0, 0.95)
+    );
+    background-size: 200% 200%;
+    animation: lava-bubble 1.5s ease infinite;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Water ripple effect animation */
+  @keyframes water-ripple {
+    0% {
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5);
+      transform: scale(0.95);
+    }
+    70% {
+      box-shadow: 0 0 0 15px rgba(59, 130, 246, 0);
+      transform: scale(1);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+      transform: scale(1);
+    }
+  }
+
+  .water-effect {
+    animation: water-ripple 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .water-effect::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+      circle,
+      rgba(59, 130, 246, 0.6) 0%,
+      rgba(59, 130, 246, 0.4) 30%,
+      rgba(59, 130, 246, 0) 70%
+    );
+    opacity: 0;
+    animation: wave-fade 1s ease-out forwards;
+  }
+
+  @keyframes wave-fade {
+    0% { opacity: 0.8; transform: scale(0.5); }
+    100% { opacity: 0; transform: scale(2); }
+  }
 }

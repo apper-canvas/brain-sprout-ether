@@ -29,6 +29,15 @@ export default {
           700: '#334155',
           800: '#1e293b',
           900: '#0f172a'   // Darkest
+        },
+        lava: {
+          DEFAULT: '#FF5500',
+          light: '#FF8C00',
+          dark: '#CC4400'
+        },
+        water: {
+          DEFAULT: '#3B82F6',
+          light: '#93C5FD'
         }
       },
       fontFamily: {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
@@ -11,6 +11,7 @@ const CheckCircleIcon = getIcon('check-circle');
 const AlertCircleIcon = getIcon('alert-circle');
 const ArrowLeftIcon = getIcon('arrow-left');
 const StarIcon = getIcon('star');
+const TimerIcon = getIcon('timer');
 const RotateCcwIcon = getIcon('rotate-ccw');
 
 // Sample data for educational questions
@@ -142,6 +143,9 @@ const MainFeature = ({ grade }) => {
   const [quizComplete, setQuizComplete] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
   const [stars, setStars] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [timerActive, setTimerActive] = useState(false);
+  const timerRef = useRef(null);
 
   const handleSubjectSelect = (subject) => {
     setSelectedSubject(subject);
@@ -149,6 +153,13 @@ const MainFeature = ({ grade }) => {
     setScore(0);
     setQuizComplete(false);
     toast.info(`Starting ${subject.name} quiz!`);
+    
+    // Only start the timer for math subject
+    if (subject.id === 'math') {
+      setTimeLeft(30);
+      setTimerActive(true);
+    }
+    
   };
 
   const handleBackToSubjects = () => {
@@ -156,6 +167,9 @@ const MainFeature = ({ grade }) => {
     setCurrentQuestion(0);
     setScore(0);
     setQuizComplete(false);
+    setTimerActive(false);
+    setTimeLeft(30);
+    clearInterval(timerRef.current);
   };
 
   const handleAnswerSelect = (answer) => {
@@ -168,9 +182,16 @@ const MainFeature = ({ grade }) => {
     
     if (isCorrect) {
       toast.success('Correct answer!', {
-        icon: <CheckCircleIcon className="text-green-500 w-5 h-5" />
+        icon: <CheckCircleIcon className="text-green-500 w-5 h-5" />,
+        autoClose: 2000
       });
       setScore(prev => prev + 1);
+      
+      // Pause the timer
+      if (selectedSubject.id === 'math') {
+        setTimerActive(false);
+      }
+      
     } else {
       toast.error('Not quite right!', {
         icon: <AlertCircleIcon className="text-red-500 w-5 h-5" />
@@ -186,7 +207,13 @@ const MainFeature = ({ grade }) => {
     setSelectedAnswer(null);
 
     if (currentQuestion < selectedSubject.questions.length - 1) {
+      // Move to the next question and reset/start timer for math
       setCurrentQuestion(prev => prev + 1);
+      if (selectedSubject.id === 'math') {
+        setTimeLeft(30);
+        setTimerActive(true);
+      }
+      
     } else {
       setQuizComplete(true);
     }
@@ -200,8 +227,36 @@ const MainFeature = ({ grade }) => {
       else if (percentage >= 60) setStars(2);
       else if (percentage >= 30) setStars(1);
       else setStars(0);
+      
+      // Ensure timer is stopped when quiz is complete
+      setTimerActive(false);
     }
   }, [quizComplete, score, selectedSubject]);
+  
+  // Timer effect for math section
+  useEffect(() => {
+    if (selectedSubject?.id === 'math' && timerActive && timeLeft > 0) {
+      timerRef.current = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+      
+      return () => clearInterval(timerRef.current);
+    }
+  }, [selectedSubject, timerActive, timeLeft]);
+  
+  // Handle timer expiration
+  useEffect(() => {
+    if (timeLeft === 0 && selectedSubject?.id === 'math' && !answered && !quizComplete) {
+      toast.error('Time\'s up!', {
+        icon: <TimerIcon className="text-red-500 w-5 h-5" />
+      });
+      setAnswered(true);
+      setShowExplanation(true);
+    }
+  }, [timeLeft, selectedSubject, answered, quizComplete]);
+  
+  // Clean up timer on unmount
+  useEffect(() => () => clearInterval(timerRef.current), []);
 
   const handleRestartQuiz = () => {
     setCurrentQuestion(0);
@@ -210,6 +265,7 @@ const MainFeature = ({ grade }) => {
     setScore(0);
     setQuizComplete(false);
     setShowExplanation(false);
+    setTimeLeft(30);
   };
 
   // Helper function to get the appropriate icon component
@@ -368,9 +424,19 @@ const MainFeature = ({ grade }) => {
                 <span className="text-surface-500 dark:text-surface-400">
                   Question {currentQuestion + 1} of {selectedSubject.questions.length}
                 </span>
-                <span className="text-surface-500 dark:text-surface-400">
-                  Score: {score}
-                </span>
+
+                <div className="flex items-center space-x-3">
+                  {selectedSubject.id === 'math' && (
+                    <div className={`px-3 py-1 rounded-full font-bold ${
+                      timeLeft <= 10 ? 'lava-effect-urgent' : 'lava-effect'
+                    }`}>
+                      <span className="flex items-center gap-1">
+                        <TimerIcon className="w-4 h-4" /> {timeLeft}s
+                      </span>
+                    </div>
+                  )}
+                  <span className="text-surface-500 dark:text-surface-400">Score: {score}</span>
+                </div>
               </div>
               
               <div className="mb-8">
@@ -387,7 +453,9 @@ const MainFeature = ({ grade }) => {
                       onClick={() => handleAnswerSelect(option)}
                       disabled={answered}
                       className={`w-full text-left p-4 rounded-lg border transition-all ${
-                        answered
+                        answered && option === selectedSubject.questions[currentQuestion].correctAnswer && 
+                        option === selectedAnswer ? "water-effect " : ""
+                      }${answered
                           ? option === selectedSubject.questions[currentQuestion].correctAnswer
                             ? "bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700"
                             : option === selectedAnswer
