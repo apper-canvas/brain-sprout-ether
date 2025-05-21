@@ -331,7 +331,11 @@ const MainFeature = ({ grade }) => {
                     {getSubjectIcon(subject.icon)}
                   </div>
                   <h3 className="text-xl font-bold">{subject.name}</h3>
-                  <p className="mt-2 text-sm opacity-80">{subject.questions.length} questions</p>
+                  <p className="mt-2 text-sm opacity-80">
+                    {subject.questions ? 
+                      `${subject.questions.length} questions` : 
+                      subject.isGame ? 'Interactive game' : '0 questions'}
+                  </p>
                 </motion.div>
               ))}
             </div>
@@ -348,8 +352,8 @@ const MainFeature = ({ grade }) => {
             <h2 className="text-2xl md:text-3xl font-bold mb-4">Quiz Complete!</h2>
             
             <div className="py-5">
-              <div className="text-4xl font-bold mb-3">
-                Your Score: {score}/{selectedSubject.questions.length}
+              <div className="text-4xl font-bold mb-3"> 
+                Your Score: {score}/{selectedSubject?.questions?.length || 0}
               </div>
               
               <div className="flex justify-center space-x-2 mb-8">
@@ -447,7 +451,7 @@ const MainFeature = ({ grade }) => {
             >
               <div className="flex justify-between items-center mb-4">
                 <span className="text-surface-500 dark:text-surface-400">
-                  Question {currentQuestion + 1} of {selectedSubject.questions.length}
+                  Question {currentQuestion + 1} of {selectedSubject?.questions?.length || 0}
                 </span>
 
                 {selectedSubject.id === 'math' && (
@@ -471,11 +475,11 @@ const MainFeature = ({ grade }) => {
               
               <div className="mb-8">
                 <h3 className="text-xl font-semibold mb-6 relative z-10 text-surface-900 dark:text-surface-100">
-                  {selectedSubject.questions[currentQuestion].question}
+                  {selectedSubject?.questions?.[currentQuestion]?.question}
                 </h3>
                 
                 <div className="space-y-3">
-                  {selectedSubject.questions[currentQuestion].options.map((option, index) => (
+                  {selectedSubject?.questions?.[currentQuestion]?.options?.map((option, index) => (
                     <motion.button
                       key={index}
                       whileHover={{ scale: 1.02 }}
@@ -484,10 +488,10 @@ const MainFeature = ({ grade }) => {
                       disabled={answered}
                       className={`w-full text-left p-4 rounded-lg border transition-all ${
                         answered && option === selectedSubject.questions[currentQuestion].correctAnswer && 
-                        option === selectedAnswer ? "water-effect " : ""
+                        option === selectedAnswer ? "water-effect " : "" 
                       }${answered
-                          ? option === selectedSubject.questions[currentQuestion].correctAnswer
-                            ? "bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700"
+                          ? option === selectedSubject?.questions?.[currentQuestion]?.correctAnswer
+                            ? "bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700" 
                             : option === selectedAnswer
                               ? "bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700"
                               : "bg-surface-100 dark:bg-surface-700 border-surface-200 dark:border-surface-600" 
@@ -497,14 +501,14 @@ const MainFeature = ({ grade }) => {
                       <div className="flex items-center">
                         <div className={`w-6 h-6 rounded-full mr-3 flex items-center justify-center ${
                           answered
-                            ? option === selectedSubject.questions[currentQuestion].correctAnswer
+                            ? option === selectedSubject?.questions?.[currentQuestion]?.correctAnswer
                               ? "bg-green-500"
                               : option === selectedAnswer
                                 ? "bg-red-500"
                                 : "bg-surface-300 dark:bg-surface-500"
                             : "bg-surface-300 dark:bg-surface-500"
                         }`}>
-                          {answered && option === selectedSubject.questions[currentQuestion].correctAnswer ? (
+                          {answered && option === selectedSubject?.questions?.[currentQuestion]?.correctAnswer ? (
                             <CheckCircleIcon className="w-4 h-4 text-white" />
                           ) : (
                             <span className="text-xs text-white">
@@ -527,13 +531,13 @@ const MainFeature = ({ grade }) => {
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.3 }}
                     className={`p-4 rounded-lg mb-6 ${
-                      selectedAnswer === selectedSubject.questions[currentQuestion].correctAnswer
+                      selectedAnswer === selectedSubject?.questions?.[currentQuestion]?.correctAnswer
                         ? "bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700"
                         : "bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-700"
                     }`}
                   >
                     <h4 className="font-bold mb-1">Explanation:</h4>
-                    <p>{selectedSubject.questions[currentQuestion].explanation}</p>
+                    <p>{selectedSubject?.questions?.[currentQuestion]?.explanation}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -551,7 +555,7 @@ const MainFeature = ({ grade }) => {
                     onClick={handleNextQuestion}
                     className="btn-primary relative z-10"
                   >
-                    {currentQuestion < selectedSubject.questions.length - 1 
+                    {currentQuestion < (selectedSubject?.questions?.length - 1 || 0)
                       ? "Next Question" 
                       : "See Results"}
                   </motion.button>
