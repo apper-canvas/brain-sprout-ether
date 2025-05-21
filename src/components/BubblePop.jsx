@@ -47,7 +47,7 @@ const BubblePop = ({ onBack }) => {
     const initialBubbles = Array.from({ length: Math.min(5, level + 2) }, () => {
       // Generate random number between 1 and 100
       const num = Math.floor(Math.random() * 100) + 1;
-      // Generate random x position along the width
+      // Generate random x position along the width (covering 80% of the screen with 10% margin on each side)
       const randomXPos = 5 + Math.random() * 90;
       
       return {
@@ -66,10 +66,10 @@ const BubblePop = ({ onBack }) => {
   // Continuously generate new bubbles
   useEffect(() => {
     if (gameActive && bubbles.length < Math.min(Math.max(10, level + 9), 15)) {
-      const timer = setTimeout(() => {
+      const timer = setTimeout(() => { 
         if (gameActive && !gameOver) {
           // Generate random number between 1 and 100
-          const num = Math.floor(Math.random() * 100) + 1;
+          const num = Math.floor(Math.random() * 100) + 1; 
           // Generate random x position along the bottom of the screen
           const randomXPos = 5 + Math.random() * 90;
           
@@ -246,7 +246,7 @@ const BubblePop = ({ onBack }) => {
           
           {/* Bubble play area */}
           <div className="relative h-[400px] bg-gradient-to-b from-blue-50/50 to-purple-50/50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg overflow-hidden">
-            {/* Centered game title */}
+            {/* Centered game title */} 
             <div className="absolute top-3 left-0 right-0 z-10 text-center">
               <div className="game-title text-2xl md:text-3xl font-extrabold">
                 POP {currentRule.toUpperCase()} NUMBERS!
@@ -258,8 +258,8 @@ const BubblePop = ({ onBack }) => {
                   key={bubble.id}
                   initial={{ x: `${bubble.x}%`, y: `${bubble.y}%`, opacity: 0.7 }}
                   animate={{ 
-                    y: [null, '-120%'], 
-                    x: [`${bubble.x}%`, `${bubble.x - 10 + Math.random() * 20}%`], 
+                    y: [null, '-100%'],  
+                    x: [`${bubble.x}%`, `${bubble.x - 15 + Math.random() * 30}%`], 
                     opacity: [0.7, 1, 0.7] 
                   }}
                   exit={{ scale: 1.5, opacity: 0 }}
