@@ -236,15 +236,9 @@ const BubblePop = ({ onBack }) => {
           </div>
           
           {/* Centered game title */}
-            </div>
-          </div>
-          
-          {/* Progress indicator */}
           <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full mb-4">
             <div 
-              className="h-full bg-blue-500 rounded-full transition-all duration-300 ease-out"
-              style={{ width: `${(bubblesPopped / requiredPops) * 100}%` }}
-            ></div>
+            <div className="h-full bg-blue-500 rounded-full transition-all duration-300 ease-out" style={{ width: `${(bubblesPopped / requiredPops) * 100}%` }}
           </div>
           
           {/* Bubble play area */}
