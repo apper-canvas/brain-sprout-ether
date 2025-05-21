@@ -99,7 +99,7 @@ const BubblePop = ({ onBack }) => {
         id: Date.now() + Math.random() + num,
         number: num,
         isOdd: num % 2 !== 0,
-        x, y: 100, size, speed
+        x, y: '100vh', size, speed
       };
     });
     setBubbles(initialBubbles);
@@ -150,7 +150,7 @@ const BubblePop = ({ onBack }) => {
              i <= Math.min(GRID_COLS - 1, gridX + halfBubbleWidth); i++) {
           // Only check for bubbles near the bottom area where new bubbles appear
           // This is crucial for preventing overlaps at bubble generation
-          const bottomBubbles = occupiedPositionsRef.current[i].filter(b => b.y > 85);
+          const bottomBubbles = occupiedPositionsRef.current[i].filter(b => b === '100vh');
           
           if (bottomBubbles.length > 0) {
             positionIsFree = false;
@@ -173,7 +173,7 @@ const BubblePop = ({ onBack }) => {
       
       // Less strict check - just make sure immediate position isn't too crowded
       // Check bubbles positioned at the very bottom where new bubbles will appear
-      const immediate = occupiedPositionsRef.current[safeGridX].filter(b => b.y > 95);
+      const immediate = occupiedPositionsRef.current[safeGridX].filter(b => b === '100vh');
       
       if (immediate.length < 1) {
         return { x, size };
@@ -209,8 +209,8 @@ const BubblePop = ({ onBack }) => {
                i <= Math.min(GRID_COLS - 1, safeGridX + halfBubbleWidth); i++) {
             occupiedPositionsRef.current[i].push({
               id: Date.now() + Math.random(),
-              y: 100, // Bottom of container
-              size
+              id: Date.now() + Math.random(), 
+              y: '100vh', // Bottom of container
             });
           }
           
@@ -220,7 +220,7 @@ const BubblePop = ({ onBack }) => {
             number: num,
             isOdd: num % 2 !== 0,
             x: x, // Position from findFreePosition
-            y: 100,
+            y: '100vh',
             size, // Use the size from findFreePosition
             speed: 2 + Math.random() * (level * 0.4) // Slightly more consistent speeds
           };
@@ -249,7 +249,7 @@ const BubblePop = ({ onBack }) => {
       for (let col = 0; col < GRID_COLS; col++) {
         // Filter out bubbles that have moved significantly up the screen
         // y < 0 means they've left the top of the screen, but we give some buffer room
-        occupiedPositionsRef.current[col] = occupiedPositionsRef.current[col].filter(b => b.y > -30);
+        occupiedPositionsRef.current[col] = occupiedPositionsRef.current[col].filter(b => b.y !== '0vh');
       }
     }
   }, [bubblesToRemoveRef.current.size]);
@@ -304,7 +304,7 @@ const BubblePop = ({ onBack }) => {
     // Clear this bubble from the grid in all cells it might occupy
     for (let i = Math.max(0, safeGridX - halfBubbleWidth); 
          i <= Math.min(GRID_COLS - 1, safeGridX + halfBubbleWidth); i++) {
-      // Remove any entries at this approximate position
+      // Use string comparison since y is now '100vh'
       occupiedPositionsRef.current[i] = occupiedPositionsRef.current[i].filter(b => Math.abs(b.y - bubble.y) > 10);
     }
 
@@ -489,14 +489,14 @@ const BubblePop = ({ onBack }) => {
                   key={bubble.id}
                   initial={{ 
                     x: `${bubble.x}%`,
-                    y: '100%',
+                    y: '100vh',
                     opacity: 0.9
                   }}
                   animate={{
-                    y: '-100%', // Move straight up to the top of the screen
+                    y: '0vh', // Move straight up to the top of the screen
                     x: `${bubble.x}%`, // Keep x position fixed for straight path
                     opacity: [0.9, 1, 0.8] // Keep the opacity animation
-                  }}
+                  }} 
                   exit={{ 
                     opacity: 0, 
                     scale: 0.8, 
@@ -509,7 +509,7 @@ const BubblePop = ({ onBack }) => {
                   onClick={() => handleBubbleTap(bubble)} 
                   onAnimationComplete={(definition) => {
                     // Only remove the bubble when it's fully off the top of the screen
-                    if (definition === "y" || definition?.y === '-20%') {
+                    if (definition === "y" || definition?.y === '0vh') {
                       bubblesToRemoveRef.current.add(bubble.id);
                     }
                    }}
