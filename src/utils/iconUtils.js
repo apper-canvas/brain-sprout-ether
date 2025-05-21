@@ -4,7 +4,7 @@ export const getIcon = (iconName) => {
   // Handle null/undefined case
   if (!iconName) {
     console.warn('No icon name provided, using Smile as fallback');
-    return LucideIcons.Smile;
+    return LucideIcons.Smile || LucideIcons.Activity;
   }
   
   // Step 1: Try direct match first (if already PascalCase)

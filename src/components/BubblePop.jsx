@@ -48,7 +48,7 @@ const BubblePop = ({ onBack }) => {
 
   // Generate random bubbles based on current level
   const generateBubbles = useCallback(() => {    
-    // Clear existing bubbles
+    // Clear existing bubbles and reset occupied positions
     setBubbles([]);
     // Reset occupied positions
     occupiedPositionsRef.current = new Array(GRID_COLS).fill().map(() => []);
@@ -60,22 +60,21 @@ const BubblePop = ({ onBack }) => {
       
       // Find a free position for the bubble
       // Distribute bubbles evenly along the width of the container with some randomness
-      // Use larger bubbles for better visibility
-      const size = Math.floor(Math.random() * 25) + 45; // 45-70px
+      // Use varied bubble sizes for better visibility and gameplay
+      const size = Math.floor(Math.random() * 30) + 40; // 40-70px
       
-      // Position bubbles evenly across the full width
-      // Add an offset to ensure bubbles start at different horizontal positions
-      const section = GRID_COLS / Math.min(5, level + 2); // Divide container into sections
-      const sectionIndex = initialBubbles.length;
-      // Ensure bubbles are evenly distributed initially
-      const baseX = (sectionIndex * section) + (Math.random() * section * 0.7);
-      const position = Math.max(2, Math.min(98, (baseX / GRID_COLS) * 100));
+      // Position bubbles randomly across the full screen to start
+      // This allows for more natural distribution and movement
+      const position = Math.random() * 90 + 5; // 5-95% horizontal position
+      const verticalPos = Math.random() * 70 + 10; // 10-80% vertical position
       
-      // Note: positions are now percentages (0-100) of container width
+      // Note: positions are percentages of container width/height
       const x = position;
+      const y = verticalPos;
       
       // Mark this position as occupied
-      const gridX = Math.floor(x / (100 / GRID_COLS));
+      // Using grid cells for collision detection
+      const gridX = Math.floor(position / (100 / GRID_COLS));
       const safeGridX = Math.max(0, Math.min(GRID_COLS - 1, gridX));
       
       // Calculate bubble width in grid cells
@@ -87,19 +86,22 @@ const BubblePop = ({ onBack }) => {
            i <= Math.min(GRID_COLS - 1, safeGridX + halfBubbleWidth); i++) {
         occupiedPositionsRef.current[i].push({
           id: Date.now() + Math.random(),
-          y: 100, // Bottom of container
+          y: verticalPos, // Store vertical position for tracking
           size
         });
       }
       
-      // Calculate a speed based on level with less randomness for more predictable movement
-      const speed = 2 + (level * 0.3) + (Math.random() * 0.5);
+      // Calculate varied speeds for more natural movement
+      const baseSpeed = 2 + (level * 0.2); 
+      const horizontalSpeed = baseSpeed * (0.7 + Math.random() * 0.6);
+      const verticalSpeed = baseSpeed * (0.8 + Math.random() * 0.4);
       
       return {
         id: Date.now() + Math.random() + num,
         number: num,
         isOdd: num % 2 !== 0,
-        x, y: '100vh', size, speed
+        x, y, size, 
+        speedX: horizontalSpeed, speedY: verticalSpeed
       };
     });
     setBubbles(initialBubbles);
@@ -110,9 +112,8 @@ const BubblePop = ({ onBack }) => {
     // Generate random size first
     const size = Math.random() * (maxSize - minSize) + minSize;
     const bubbleRadius = size / 2;
-
-    // Calculate bubble width in grid cells
-    const bubbleWidthInCells = Math.ceil((size / (window.innerWidth * 0.8)) * GRID_COLS);
+    
+    const bubbleWidthInCells = Math.ceil((size / window.innerWidth) * GRID_COLS * 1.2);
     const halfBubbleWidth = Math.floor(bubbleWidthInCells / 2);
     
     // First, analyze which sections of the grid have fewer bubbles
@@ -122,7 +123,7 @@ const BubblePop = ({ onBack }) => {
     for (let i = 0; i < 4; i++) {
       let count = 0;
       for (let j = i * sectionWidth; j < (i + 1) * sectionWidth && j < GRID_COLS; j++) {
-        count += occupiedPositionsRef.current[j].filter(b => b.y > 90).length;
+        count += occupiedPositionsRef.current[j].length;
       }
       sectionBubbleCounts.push({ section: i, count });
     }
@@ -150,7 +151,7 @@ const BubblePop = ({ onBack }) => {
              i <= Math.min(GRID_COLS - 1, gridX + halfBubbleWidth); i++) {
           // Only check for bubbles near the bottom area where new bubbles appear
           // This is crucial for preventing overlaps at bubble generation
-          const bottomBubbles = occupiedPositionsRef.current[i].filter(b => b.y === '100vh');
+          const bottomBubbles = occupiedPositionsRef.current[i].filter(b => b.y > 80);
           
           if (bottomBubbles.length > 0) {
             positionIsFree = false;
@@ -173,7 +174,7 @@ const BubblePop = ({ onBack }) => {
       
       // Less strict check - just make sure immediate position isn't too crowded
       // Check bubbles positioned at the very bottom where new bubbles will appear
-      const immediate = occupiedPositionsRef.current[safeGridX].filter(b => b.y === '100vh');
+      const immediate = occupiedPositionsRef.current[safeGridX].filter(b => b.y > 80);
       
       if (immediate.length < 1) {
         return { x, size };
@@ -190,12 +191,13 @@ const BubblePop = ({ onBack }) => {
   // Continuously generate new bubbles
   useEffect(() => {
     // Only generate bubbles if the game is active, not over, time remains, and we're under the bubble limit
-    if (gameActive && !gameOver && timeRemaining > 0 && bubbles.length < Math.min(Math.max(10, level + 9), 15)) {
+    if (gameActive && !gameOver && timeRemaining > 0 && bubbles.length < Math.min(Math.max(12, level + 10), 20)) {
       const timer = setInterval(() => { 
         if (gameActive && !gameOver) {
           const num = Math.floor(Math.random() * 100) + 1;
-          const { x, size } = findFreePosition(45, 65); // Slightly larger bubbles
-
+          const { x, size } = findFreePosition(40, 65);
+          // Randomize the vertical position for new bubbles
+          const y = Math.random() * 60 + 20; // 20-80% vertical position
           // Mark this position as occupied in the grid
           const gridX = Math.floor(x / (100 / GRID_COLS));
           const safeGridX = Math.max(0, Math.min(GRID_COLS - 1, gridX));
@@ -209,7 +211,7 @@ const BubblePop = ({ onBack }) => {
                i <= Math.min(GRID_COLS - 1, safeGridX + halfBubbleWidth); i++) {
             occupiedPositionsRef.current[i].push({
               id: Date.now() + Math.random(),
-              y: '100vh', // Bottom of container
+              y: y, // Store vertical position
             });
           }
           
@@ -219,9 +221,11 @@ const BubblePop = ({ onBack }) => {
             number: num,
             isOdd: num % 2 !== 0,
             x: x, // Position from findFreePosition
-            y: '100vh',
+            y: y,
             size, // Use the size from findFreePosition
-            speed: 2 + Math.random() * (level * 0.4) // Slightly more consistent speeds
+            // Generate random speeds for X and Y directions
+            speedX: (2 + Math.random() * (level * 0.3)) * (Math.random() > 0.5 ? 1 : -1),
+            speedY: (2 + Math.random() * (level * 0.3)) * (Math.random() > 0.5 ? 1 : -1)
           };
           
           setBubbles(prev => [...prev, newBubble]);
@@ -248,7 +252,7 @@ const BubblePop = ({ onBack }) => {
       for (let col = 0; col < GRID_COLS; col++) {
         // Filter out bubbles that have moved significantly up the screen
         // y < 0 means they've left the top of the screen, but we give some buffer room
-        occupiedPositionsRef.current[col] = occupiedPositionsRef.current[col].filter(b => b.y > 10);
+        occupiedPositionsRef.current[col] = occupiedPositionsRef.current[col].filter(b => b.y > -20 && b.y < 120);
       }
     }
   }, [bubblesToRemoveRef.current.size]);
@@ -304,7 +308,7 @@ const BubblePop = ({ onBack }) => {
     for (let i = Math.max(0, safeGridX - halfBubbleWidth); 
          i <= Math.min(GRID_COLS - 1, safeGridX + halfBubbleWidth); i++) {
       // Use string comparison since y is now '100vh'
-      occupiedPositionsRef.current[i] = occupiedPositionsRef.current[i].filter(b => Math.abs(b.y - bubble.y) > 10);
+      occupiedPositionsRef.current[i] = occupiedPositionsRef.current[i].filter(b => b.id !== bubble.id);
     }
 
     // Handle scoring and feedback
@@ -491,16 +495,31 @@ const BubblePop = ({ onBack }) => {
                 // These values create natural variation in the side-to-side motion
                 // while maintaining the consistent upward movement speed
                 
+                // Calculate random direction changes for more natural movement
+                // Create 5-10 random waypoints for each bubble to create natural paths
+                const createRandomPath = (bubble) => {
+                  const points = [];
+                  const numPoints = Math.floor(Math.random() * 6) + 5; // 5-10 points
+                  
+                  for (let i = 0; i < numPoints; i++) {
+                    // Create random variations around the starting position
+                    const xOffset = (Math.random() * 40 - 20) * (bubble.speedX > 0 ? 1 : -1);
+                    const yOffset = (Math.random() * 40 - 20) * (bubble.speedY > 0 ? 1 : -1);
+                    
+                    points.push(`calc(${bubble.x}% + ${xOffset}px)`, `calc(${bubble.y}% + ${yOffset}px)`);
+                  }
+                  
+                  return points;
+                };
+                
+                const randomPath = createRandomPath(bubble);
+                
                 <motion.div
                   key={bubble.id}
                   initial={{ 
                     x: `${bubble.x}%`,
-                    y: '100vh',
-                    opacity: 0.9
-                  }}
-                  // Use a complex animation that combines:
-                  // 1. Linear upward movement (y-axis)
-                  // 2. Sine wave side-to-side movement (x-axis)
+                    y: `${bubble.y}%`,
+                    opacity: 0.9 }}
                   // 3. Subtle opacity changes
                   animate={{
                     y: '0vh', // Move straight up to the top of the screen
@@ -509,7 +528,8 @@ const BubblePop = ({ onBack }) => {
                       `${bubble.x}%`, 
                       `calc(${bubble.x}% + ${5 + Math.random() * 15}px)`, 
                       `${bubble.x}%`, 
-                      `calc(${bubble.x}% - ${5 + Math.random() * 15}px)`, 
+                      `calc(${bubble.x}% - ${5 + Math.random() * 15}px)`,
+                      
                       `${bubble.x}%`
                     ],
                     scale: [1, 1.02, 0.98, 1.01, 1],
@@ -522,10 +542,11 @@ const BubblePop = ({ onBack }) => {
                   }}
                   transition={{ 
                     y: { duration: 10, ease: "linear" }, // Fixed 10 seconds for straight upward movement
-                    x: { 
+                    x: {
                       duration: 2.5 + Math.random() * 1, // Random duration between 2.5s and 3.5s
                       repeat: Infinity, // Repeat indefinitely during the 10s upward motion
-                      ease: "easeInOut" // Smooth sine-like motion
+                      ease: "easeInOut", // Smooth sine-like motion
+                      times: [0, 0.25, 0.5, 0.75, 1]
                     },
                     opacity: { duration: 10, times: [0, 0.5, 1], ease: "linear" }, // Matched opacity animation duration
                   }}
@@ -542,7 +563,6 @@ const BubblePop = ({ onBack }) => {
                     width: `${bubble.size}px`,
                     height: `${bubble.size}px`,
                     "--amplitude": `${5 + Math.random() * 15}px` // Random amplitude between 5px and 20px
-                  }}
                   }}>
                   <span className="text-xl font-bold">{bubble.number}</span>
                 </motion.div>

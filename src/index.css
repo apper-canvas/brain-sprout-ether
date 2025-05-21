@@ -415,6 +415,32 @@
     animation-delay: 0s, var(--delay, 0s);
   }
   
+  /* Multi-directional random bubble movement */
+  @keyframes bubble-float-random {
+    0% {
+      transform: translate(0, 0);
+    }
+    20% {
+      transform: translate(var(--move-x-1, 15px), var(--move-y-1, -10px));
+    }
+    40% {
+      transform: translate(var(--move-x-2, -10px), var(--move-y-2, -25px));
+    }
+    60% {
+      transform: translate(var(--move-x-3, 5px), var(--move-y-3, -15px));
+    }
+    80% {
+      transform: translate(var(--move-x-4, -15px), var(--move-y-4, -30px));
+    }
+    100% {
+      transform: translate(0, var(--move-y-5, -40px));
+    }
+  }
+  
+  .bubble-free-float {
+    animation: bubble-float-random var(--duration, 8s) ease-in-out infinite;
+  }
+  
   /* Add animation properties to the bubble */
   .bubble {
     --amplitude: 15px;
