@@ -13,7 +13,6 @@ const ArrowLeftIcon = getIcon('arrow-left');
 const StarIcon = getIcon('star');
 const TimerIcon = getIcon('timer');
 const RotateCcwIcon = getIcon('rotate-ccw');
-const CircleIcon = getIcon('circle');
 
 // Sample data for educational questions
 const subjects = [
@@ -44,30 +43,7 @@ const subjects = [
         correctAnswer: "12",
         explanation: "3 × 4 = 12"
       }
-    ],
-    bubbleQuiz: [
-      {
-        id: 1,
-        instruction: "Pop the even numbers!",
-        target: "even",
-        timeLimit: 45
-      },
-      {
-        id: 2,
-        instruction: "Pop the odd numbers!",
-        target: "odd",
-        timeLimit: 45
-      },
-      {
-        id: 3,
-        instruction: "Pop the multiples of 3!",
-        target: "multiple3",
-        timeLimit: 45
-      }
-    ],
-    games: {
-      hasBubbleQuiz: true
-    }
+    ]
   },
   { 
     id: 'science', 
@@ -168,12 +144,6 @@ const MainFeature = ({ grade }) => {
   const [quizComplete, setQuizComplete] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
   const [stars, setStars] = useState(0);
-  const [playingBubbleQuiz, setPlayingBubbleQuiz] = useState(false);
-  const [bubbleQuizLevel, setBubbleQuizLevel] = useState(0);
-  const [bubbleQuizComplete, setBubbleQuizComplete] = useState(false);
-  const [bubbleQuizScore, setBubbleQuizScore] = useState(0);
-  const [showBubbleQuizOption, setShowBubbleQuizOption] = useState(false);
-  const [bubbleQuizTimerActive, setBubbleQuizTimerActive] = useState(false);
   const [timeLeft, setTimeLeft] = useState(30);
   const [timerActive, setTimerActive] = useState(false);
   const timerRef = useRef(null);
@@ -184,14 +154,14 @@ const MainFeature = ({ grade }) => {
     setScore(0);
     setQuizComplete(false);
     toast.info(`Starting ${subject.name} quiz!`);
-    setShowBubbleQuizOption(subject.id === 'math');
     setWaterEffect(false);
-
+    
     // Only start the timer for math subject
     if (subject.id === 'math') {
       setTimeLeft(30);
       setTimerActive(true);
     }
+    
   };
 
   const handleBackToSubjects = () => {
@@ -203,8 +173,6 @@ const MainFeature = ({ grade }) => {
     setTimeLeft(30);
     setWaterEffect(false);
     clearInterval(timerRef.current);
-    setPlayingBubbleQuiz(false);
-    setBubbleQuizComplete(false);
   };
 
   const handleAnswerSelect = (answer) => {
@@ -306,244 +274,6 @@ const MainFeature = ({ grade }) => {
     setWaterEffect(false);
   };
 
-  const startBubbleQuiz = () => {
-    setPlayingBubbleQuiz(true);
-    setBubbleQuizLevel(0);
-    setBubbleQuizScore(0);
-    setBubbleQuizComplete(false);
-    setTimerActive(false);
-    setBubbleQuizTimerActive(true);
-    toast.info("Let's pop some bubbles!");
-  };
-
-  const handleBubbleQuizComplete = (finalScore) => {
-    setBubbleQuizComplete(true);
-    setBubbleQuizScore(finalScore);
-    setBubbleQuizTimerActive(false);
-    toast.success("Bubble Quiz completed!");
-  };
-
-  const restartBubbleQuiz = () => {
-    setBubbleQuizLevel(0);
-    setBubbleQuizScore(0);
-    setBubbleQuizComplete(false);
-    setBubbleQuizTimerActive(true);
-  };
-
-  // Bubble Quiz Component
-  const BubbleQuiz = () => {
-    const [bubbles, setBubbles] = useState([]);
-    const [score, setScore] = useState(0);
-    const [timeRemaining, setTimeRemaining] = useState(selectedSubject.bubbleQuiz[bubbleQuizLevel].timeLimit);
-    const [gameActive, setGameActive] = useState(true);
-    const containerRef = useRef(null);
-    const timerRef = useRef(null);
-    const spawnTimerRef = useRef(null);
-    const [gameWidth, setGameWidth] = useState(800);
-    const [gameHeight, setGameHeight] = useState(400);
-
-    // Initialize the game
-    useEffect(() => {
-      if (containerRef.current) {
-        const {width, height} = containerRef.current.getBoundingClientRect();
-        setGameWidth(width);
-        setGameHeight(height);
-      }
-
-      // Start countdown timer
-      timerRef.current = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current);
-            clearInterval(spawnTimerRef.current);
-            setGameActive(false);
-            handleBubbleQuizComplete(score);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      // Spawn bubbles periodically
-      spawnBubble();
-      spawnTimerRef.current = setInterval(spawnBubble, 1500);
-
-      // Cleanup
-      return () => {
-        clearInterval(timerRef.current);
-        clearInterval(spawnTimerRef.current);
-      };
-    }, []);
-
-    // Update bubbles position on animation frame
-    useEffect(() => {
-      if (!gameActive) return;
-
-      const animationId = requestAnimationFrame(updateBubblePositions);
-      return () => cancelAnimationFrame(animationId);
-    }, [bubbles, gameActive]);
-
-    // Handle window resize
-    useEffect(() => {
-      const handleResize = () => {
-        if (containerRef.current) {
-          const {width, height} = containerRef.current.getBoundingClientRect();
-          setGameWidth(width);
-          setGameHeight(height);
-        }
-      };
-
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    // Generate a random number
-    const generateNumber = () => {
-      return Math.floor(Math.random() * 20) + 1; // 1 to 20
-    };
-
-    // Check if a number matches the target criteria
-    const matchesTarget = (number) => {
-      const target = selectedSubject.bubbleQuiz[bubbleQuizLevel].target;
-      if (target === 'even') return number % 2 === 0;
-      if (target === 'odd') return number % 2 !== 0;
-      if (target === 'multiple3') return number % 3 === 0;
-      return false;
-    };
-
-    // Spawn a new bubble
-    const spawnBubble = () => {
-      if (!gameActive) return;
-      
-      const number = generateNumber();
-      const size = Math.floor(Math.random() * 30) + 40; // 40 to 70px
-      
-      const newBubble = {
-        id: Date.now() + Math.random(),
-        number,
-        size,
-        x: Math.random() * (gameWidth - size),
-        y: gameHeight + size,
-        speedX: (Math.random() - 0.5) * 2,
-        speedY: -(Math.random() * 2 + 1),
-        isTarget: matchesTarget(number),
-        popped: false
-      };
-      
-      setBubbles(prev => [...prev, newBubble]);
-    };
-
-    // Update bubble positions
-    const updateBubblePositions = () => {
-      setBubbles(prev => {
-        // Filter out bubbles that are off-screen or popped for over 1 second
-        const now = Date.now();
-        const filtered = prev.filter(bubble => 
-          (bubble.y + bubble.size > 0 && !bubble.popped) || 
-          (bubble.popped && now - bubble.poppedAt < 1000)
-        );
-        
-        // Update positions
-        return filtered.map(bubble => {
-          if (bubble.popped) return bubble;
-          
-          let newX = bubble.x + bubble.speedX;
-          let newY = bubble.y + bubble.speedY;
-          
-          // Bounce off walls
-          if (newX <= 0 || newX + bubble.size >= gameWidth) {
-            bubble.speedX = -bubble.speedX;
-            newX = bubble.x + bubble.speedX;
-          }
-          
-          return {
-            ...bubble,
-            x: newX,
-            y: newY
-          };
-        });
-      });
-      
-      // Continue animation if game is active
-      if (gameActive) {
-        requestAnimationFrame(updateBubblePositions);
-      }
-    };
-
-    // Pop a bubble
-    const popBubble = (id, isTarget) => {
-      if (!gameActive) return;
-      
-      // Update scores
-      if (isTarget) {
-        setScore(prev => prev + 5);
-        toast.success("+5 points!", { autoClose: 1000 });
-      } else {
-        setScore(prev => Math.max(0, prev - 2));
-        toast.error("-2 points!", { autoClose: 1000 });
-      }
-      
-      // Mark bubble as popped
-      setBubbles(prev => 
-        prev.map(bubble => 
-          bubble.id === id 
-            ? { ...bubble, popped: true, poppedAt: Date.now() } 
-            : bubble
-        )
-      );
-    };
-
-    return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <div className="text-xl font-bold">
-            {selectedSubject.bubbleQuiz[bubbleQuizLevel].instruction}
-          </div>
-          <div className="flex space-x-4">
-            <div className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full font-semibold">
-              Score: {score}
-            </div>
-            <div className={`px-3 py-1 rounded-full font-semibold ${
-              timeRemaining <= 10 
-                ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' 
-                : 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200'
-            }`}>
-              Time: {timeRemaining}s
-            </div>
-          </div>
-        </div>
-
-        <div 
-          ref={containerRef}
-          className="bubble-game-container relative bg-blue-50 dark:bg-surface-700 rounded-xl h-[400px] overflow-hidden border border-blue-200 dark:border-blue-800"
-        >
-          {bubbles.map(bubble => (
-            <motion.div
-              key={bubble.id}
-              className={`absolute rounded-full flex items-center justify-center cursor-pointer select-none
-                ${bubble.isTarget ? 'bubble-target' : 'bubble-non-target'}
-                ${bubble.popped ? 'bubble-popped' : ''}`}
-              style={{
-                width: `${bubble.size}px`,
-                height: `${bubble.size}px`,
-                left: `${bubble.x}px`,
-                top: `${bubble.y}px`
-              }}
-              onClick={() => !bubble.popped && popBubble(bubble.id, bubble.isTarget)}
-              animate={bubble.popped ? {
-                scale: [1, 1.3, 0],
-                opacity: [1, 0.8, 0]
-              } : {}}
-              transition={bubble.popped ? { duration: 0.5 } : {}}
-            >
-              <span className="text-lg font-bold">{bubble.number}</span>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   // Helper function to get the appropriate icon component
   const getSubjectIcon = (iconName) => {
     const IconComponent = getIcon(iconName);
@@ -587,46 +317,6 @@ const MainFeature = ({ grade }) => {
                   <p className="mt-2 text-sm opacity-80">{subject.questions.length} questions</p>
                 </motion.div>
               ))}
-            </div>
-          </motion.div>
-        ) : playingBubbleQuiz ? (
-          <motion.div
-            key="bubble-quiz"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.4 }}
-            className="w-full"
-          >
-            <div className="flex items-center mb-6">
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={handleBackToSubjects}
-                className="mr-3 p-2 rounded-full bg-surface-100 dark:bg-surface-700"
-              >
-                <ArrowLeftIcon className="w-5 h-5" />
-              </motion.button>
-              
-              <div className={`w-10 h-10 rounded-full ${selectedSubject.color} flex items-center justify-center mr-3`}>
-                {getSubjectIcon(selectedSubject.icon)}
-              </div>
-              
-              <h2 className="text-xl md:text-2xl font-bold">
-                {grade.name} - Bubble Quiz
-              </h2>
-            </div>
-            
-            <div className="bg-white dark:bg-surface-800 rounded-xl shadow-card p-6">
-              {bubbleQuizComplete ? (
-                <div className="text-center py-8">
-                  <h3 className="text-2xl font-bold mb-4">Your Score: {bubbleQuizScore}</h3>
-                  <button onClick={restartBubbleQuiz} className="btn-primary mx-2">Play Again</button>
-                  <button onClick={handleBackToSubjects} className="btn-secondary mx-2">Back to Subjects</button>
-                </div>
-              ) : (
-                <BubbleQuiz />
-              )}
             </div>
           </motion.div>
         ) : quizComplete ? (
@@ -735,49 +425,17 @@ const MainFeature = ({ grade }) => {
               </h2>
             </div>
             
-          {showBubbleQuizOption && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.4 }}
-              className="mb-4"
-            >
-              <div className="bg-white dark:bg-surface-800 rounded-xl shadow-card p-4 border-2 border-blue-300 dark:border-blue-700">
-                <h3 className="text-lg font-bold text-blue-600 dark:text-blue-400 mb-2">
-                  Try our new Bubble Quiz!
-                </h3>
-                <p className="text-surface-600 dark:text-surface-400 mb-3">
-                  Pop the correct bubbles based on the instructions. It's fun and educational!
-                </p>
-                <button onClick={startBubbleQuiz} className="btn-primary w-full">
-                  Play Bubble Quiz
-                </button>
-              </div>
-            </motion.div>
-          )}
-          
             <div className={`bg-white dark:bg-surface-800 rounded-xl shadow-card p-6 
                 ${selectedSubject.id === 'math' ? `question-container relative ${waterEffect ? 'container-water-effect' : ''}` : ''}`}
             >
-              <div className="flex justify-between items-center mb-4 relative z-10">
+              <div className="flex justify-between items-center mb-4">
                 <span className="text-surface-500 dark:text-surface-400">
                   Question {currentQuestion + 1} of {selectedSubject.questions.length}
                 </span>
 
                 {selectedSubject.id === 'math' && (
-                  <>
-                    <div className="lava-background" 
-                         style={{'--lava-height': `${((30 - timeLeft) / 30) * 100}%`}}>
-                    </div>
-                    <div className="lava-bubble-1" style={{
-                      '--bubble-delay': '0.7s',
-                      '--bubble-size': '12px', 
-                      '--bubble-left': '25%',
-                      '--bubble-duration': '4s',
-                      opacity: timeLeft < 20 ? 1 : 0
-                    }}>
-                    </div>
-                  </>
+                  <div className="lava-background" 
+                       style={{'--lava-height': `${((30 - timeLeft) / 30) * 100}%`}}></div>
                 )}
 
                 <div className="flex items-center space-x-3">
