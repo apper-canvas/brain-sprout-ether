@@ -396,7 +396,7 @@
   }
   
   .bubble-animated {
-    animation: bubble-float-upward 15s linear forwards;
+    animation: bubble-float-upward 10s linear forwards;
   }
   
   @keyframes bubble-float {

@@ -487,9 +487,9 @@ const BubblePop = ({ onBack }) => {
                     opacity: 0.8
                   }}
                   animate={{
-                    y: '-30%', // Move to above the screen to ensure they fully exit
-                    x: [`${bubble.x}%`, `${bubble.x - 5 + Math.random() * 10}%`, `${bubble.x + 5 + Math.random() * 10}%`, `${bubble.x}%`], // Gentle zigzag movement
-                    opacity: [0.8, 1, 0.8]
+                    y: '-100%', // Move straight up to the top of the screen
+                    x: `${bubble.x}%`, // Keep x position fixed for straight path
+                    opacity: [0.8, 1, 0.8] // Keep the opacity animation
                   }}
                   exit={{ 
                     opacity: 0, 
@@ -497,9 +497,8 @@ const BubblePop = ({ onBack }) => {
                     transition: { duration: 0.3 }
                   }}
                   transition={{ 
-                    y: { duration: 15 / bubble.speed, ease: "linear" }, // Slightly slower upward movement for better gameplay
-                    x: { duration: 10, times: [0, 0.33, 0.66, 1], ease: "easeInOut" }, // Gentler horizontal movement
-                    opacity: { duration: 15 / bubble.speed, times: [0, 0.5, 1], ease: "linear" }
+                    y: { duration: 10, ease: "linear" }, // Exactly 10 seconds for upward movement
+                    opacity: { duration: 10, times: [0, 0.5, 1], ease: "linear" } // Match opacity animation duration
                   }}
                   onClick={() => handleBubbleTap(bubble)} 
                   onAnimationComplete={(definition) => {
