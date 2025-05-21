@@ -186,22 +186,16 @@ const BubblePop = ({ onBack }) => {
       const timer = setInterval(() => { 
         if (gameActive && !gameOver) {
           const num = Math.floor(Math.random() * 100) + 1;
-          const { x, size } = findFreePosition(40, 60);
-      const generationSpeed = Math.max(300, 600 - (level * 30));
-      
-      const timer = setInterval(() => {
-        if (gameActive && !gameOver) {
-          const num = Math.floor(Math.random() * 100) + 1;
           const { x, size } = findFreePosition(45, 65); // Slightly larger bubbles
-          
+
           // Mark this position as occupied in the grid
           const gridX = Math.floor(x / (100 / GRID_COLS));
           const safeGridX = Math.max(0, Math.min(GRID_COLS - 1, gridX));
-          
+
           // Calculate bubble width in grid cells for better collision prevention
           const bubbleWidthInCells = Math.ceil((size / (window.innerWidth * 0.8)) * GRID_COLS);
           const halfBubbleWidth = Math.floor(bubbleWidthInCells / 2);
-          
+
           // Mark adjacent grid cells as occupied
           for (let i = Math.max(0, safeGridX - halfBubbleWidth); 
                i <= Math.min(GRID_COLS - 1, safeGridX + halfBubbleWidth); i++) {
@@ -225,7 +219,7 @@ const BubblePop = ({ onBack }) => {
           
           setBubbles(prev => [...prev, newBubble]);
         }
-      }, generationSpeed);
+      }, Math.max(300, 600 - (level * 30))); // Adjust generation speed based on level
 
       return () => clearInterval(timer);
     }
