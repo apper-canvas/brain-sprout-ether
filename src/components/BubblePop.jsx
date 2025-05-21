@@ -55,7 +55,7 @@ const BubblePop = ({ onBack }) => {
         id: Date.now() + i,
         number: num,
         isOdd: num % 2 !== 0,
-        x: Math.random() * 100, // % across the entire screen width
+        x: Math.random() * 100, // Full screen width (0-100%)
         y: 110 + Math.random() * 10, // Start below the visible area
         size: Math.random() * 20 + 50, // Size between 50-70px
         speed: 2 + Math.random() * (level * 0.5) // Speed increases with level
@@ -74,7 +74,7 @@ const BubblePop = ({ onBack }) => {
             id: Date.now(),
             number: Math.floor(Math.random() * Math.min(level * 20, 100)) + 1,
             isOdd: false, // Will be set properly below
-            x: Math.random() * 100, // Full screen width
+            x: Math.random() * 100, // Full screen width (0-100%)
             y: 110 + Math.random() * 20,
             size: Math.random() * 20 + 50,
             speed: 2 + Math.random() * (level * 0.5)
