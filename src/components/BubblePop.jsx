@@ -48,8 +48,8 @@ const BubblePop = ({ onBack }) => {
     const numBubbles = Math.min(8 + level, 15); // More bubbles as level increases, max 15
     
     for (let i = 0; i < numBubbles; i++) {
-      const maxNum = Math.min(level * 20, 100); // Increase max number with level, capped at 100
-      const num = Math.floor(Math.random() * maxNum) + 1;
+      // Generate a random number between 1 and 100 (inclusive) regardless of level
+      const num = Math.floor(Math.random() * 100) + 1;
       
       newBubbles.push({
         id: Date.now() + i,
@@ -72,7 +72,7 @@ const BubblePop = ({ onBack }) => {
         if (gameActive && !gameOver) {
           const newBubble = {
             id: Date.now(),
-            number: Math.floor(Math.random() * Math.min(level * 20, 100)) + 1,
+            number: Math.floor(Math.random() * 100) + 1,
             isOdd: false, // Will be set properly below
             x: Math.random() * 100, // Full screen width (0-100%)
             y: 110 + Math.random() * 20,
