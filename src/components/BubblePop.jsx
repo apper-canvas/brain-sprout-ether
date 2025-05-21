@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useAnimationFrame } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
 import BubbleZone from './BubbleZone';
@@ -11,42 +11,22 @@ const StarIcon = getIcon('star');
 const RefreshCwIcon = getIcon('refresh-cw');
 const InfoIcon = getIcon('info');
 
-// Safe floating bubble component using useMotionValue
-const FloatingBubble = ({ bubble, onComplete, onClick }) => {
-  const x = useMotionValue(bubble.x);
-  const y = useMotionValue(100); // Start at bottom (100vh)
-  const scale = useMotionValue(1);
-  const opacity = useMotionValue(0.9);
-  
-  // Generate safe random values for animation
-  const amplitude = Math.max(5, Math.min(15, 5 + Math.random() * 15)); // 5-20px
-  const frequency = 0.5 + Math.random() * 0.5; // 0.5-1 Hz
-  const upwardSpeed = 10; // Pixels per second upward movement
-  const start = performance.now();
-
-  // Use animation frame for smooth animation
-  useAnimationFrame(() => {
-    const elapsed = (performance.now() - start) / 1000; // Convert to seconds
-    
-    // Safe calculation of sine wave
-    let sineValue = amplitude * Math.sin(frequency * elapsed);
-    if (isNaN(sineValue)) sineValue = 0;
-    
-    // Update positions
-    const newX = bubble.x + sineValue;
-    const newY = 100 - (upwardSpeed * elapsed); // Move up from bottom
-    
-    x.set(newX);
-    y.set(newY);
-    
-    // Trigger completion when bubble is off-screen
-    if (newY < -20) onComplete(bubble.id);
-  });
-
+// ✅ Bubble that floats from bottom to top
+const FloatingBubble = ({ bubble, onClick, onComplete }) => {
   return (
-    <motion.div className="bubble absolute cursor-pointer"
-      style={{ x, y, scale, opacity, width: `${bubble.size}px`, height: `${bubble.size}px` }}
-      onClick={() => onClick(bubble)}>
+    <motion.div
+      className="bubble absolute cursor-pointer"
+      initial={{ y: '100vh', opacity: 0.8 }}
+      animate={{ y: '-100px', opacity: 1 }}
+      transition={{ duration: 10, ease: 'linear' }}
+      style={{
+        x: `${bubble.x}%`,
+        width: `${bubble.size}px`,
+        height: `${bubble.size}px`
+      }}
+      onAnimationComplete={() => onComplete(bubble.id)}
+      onClick={() => onClick(bubble)}
+    >
       <span className="text-xl font-bold">{bubble.number}</span>
     </motion.div>
   );
@@ -61,254 +41,58 @@ const BubblePop = ({ onBack }) => {
   const [gameOver, setGameOver] = useState(false);
   const [stars, setStars] = useState(0);
   const [showInstructions, setShowInstructions] = useState(true);
-  const [currentRule, setCurrentRule] = useState('odd'); // 'odd' or 'even'
+  const [currentRule, setCurrentRule] = useState('odd');
   const [bubblesPopped, setBubblesPopped] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(120); // 2 minutes in seconds
-  const [requiredPops, setRequiredPops] = useState(5);
-  const bubblesToRemoveRef = useRef(new Set());
-  // Create grid to track occupied positions - divide the playzone into a 20x1 grid for better X-axis distribution
-  const GRID_COLS = 20; // 20 columns for more granular positioning
-  const occupiedPositionsRef = useRef(new Array(GRID_COLS).fill().map(() => []));
+  const [timeRemaining, setTimeRemaining] = useState(120);
+
   const playAreaRef = useRef(null);
 
-  // Initialize game
   const startGame = () => {
     setGameActive(true);
-    setShowInstructions(false); 
+    setShowInstructions(false);
     setScore(0);
     setLevel(1);
     setLives(3);
     setGameOver(false);
     setBubblesPopped(0);
-    setTimeRemaining(120); // Reset timer to 2 minutes
-    setRequiredPops(5);
+    setTimeRemaining(120);
     setCurrentRule(Math.random() > 0.5 ? 'odd' : 'even');
-    generateBubbles();
+    setBubbles([]);
     toast.success(`Game started! Pop the ${currentRule.toUpperCase()} numbers!`);
   };
 
-  // Generate random bubbles based on current level
-  const generateBubbles = useCallback(() => {    
-    // Clear existing bubbles and reset occupied positions
-    setBubbles([]);
-    // Reset occupied positions
-    occupiedPositionsRef.current = new Array(GRID_COLS).fill().map(() => []);
-    
-    // Create a starter set of bubbles (will be continued by the useEffect)
-    const initialBubbles = Array.from({ length: Math.min(5, level + 2) }, () => {
-      // Generate random number between 1 and 100
-      const num = Math.floor(Math.random() * 100) + 1;
-      
-      // Find a free position for the bubble
-      // Distribute bubbles evenly along the width of the container with some randomness
-      // Use varied bubble sizes for better visibility and gameplay
-      const size = Math.floor(Math.random() * 30) + 40; // 40-70px
-      
-      // Position bubbles randomly across the full screen to start
-      // This allows for more natural distribution and movement
-      const position = Math.random() * 90 + 5; // 5-95% horizontal position
-      const verticalPos = Math.random() * 70 + 10; // 10-80% vertical position
-      
-      // Note: positions are percentages of container width/height
-      const x = position;
-      const y = verticalPos;
-      
-      // Mark this position as occupied
-      // Using grid cells for collision detection
-      const gridX = Math.floor(position / (100 / GRID_COLS));
-      const safeGridX = Math.max(0, Math.min(GRID_COLS - 1, gridX));
-      
-      // Calculate bubble width in grid cells
-      const bubbleWidthInCells = Math.ceil((size / (window.innerWidth * 0.8)) * GRID_COLS);
-      const halfBubbleWidth = Math.floor(bubbleWidthInCells / 2);
-      
-      // Reserve space for this bubble in the grid (mark adjacent cells as occupied too)
-      for (let i = Math.max(0, safeGridX - halfBubbleWidth); 
-           i <= Math.min(GRID_COLS - 1, safeGridX + halfBubbleWidth); i++) {
-        occupiedPositionsRef.current[i].push({
-          id: Date.now() + Math.random(),
-          y: verticalPos, // Store vertical position for tracking
-          size
-        });
-      }
-      
-      // Calculate varied speeds for more natural movement
-      const baseSpeed = 2 + (level * 0.2); 
-      const horizontalSpeed = baseSpeed * (0.7 + Math.random() * 0.6);
-      const verticalSpeed = baseSpeed * (0.8 + Math.random() * 0.4);
-      
-      return {
-        id: Date.now() + Math.random() + num,
-        number: num,
-        isOdd: num % 2 !== 0,
-        x, y, size, 
-        speedX: horizontalSpeed, speedY: verticalSpeed
-      };
-    });
-    setBubbles(initialBubbles);
-  }, [level]);
+  const generateBubble = () => {
+    const num = Math.floor(Math.random() * 100) + 1;
+    const x = Math.random() * 90 + 5; // 5% to 95%
+    const size = Math.floor(Math.random() * 30) + 40;
 
-  // Function to find a free position for new bubbles
-  const findFreePosition = (minSize, maxSize) => {
-    // Generate random size first
-    const size = Math.random() * (maxSize - minSize) + minSize;
-    const bubbleRadius = size / 2;
-    
-    const bubbleWidthInCells = Math.ceil((size / window.innerWidth) * GRID_COLS * 1.2);
-    const halfBubbleWidth = Math.floor(bubbleWidthInCells / 2);
-    
-    // First, analyze which sections of the grid have fewer bubbles
-    const sectionBubbleCounts = [];
-    const sectionWidth = Math.ceil(GRID_COLS / 4); // Divide into 4 sections
-    
-    for (let i = 0; i < 4; i++) {
-      let count = 0;
-      for (let j = i * sectionWidth; j < (i + 1) * sectionWidth && j < GRID_COLS; j++) {
-        count += occupiedPositionsRef.current[j].length;
-      }
-      sectionBubbleCounts.push({ section: i, count });
-    }
-    
-    // Sort sections by bubble count, prefer sections with fewer bubbles
-    sectionBubbleCounts.sort((a, b) => a.count - b.count);
-    
-    // Try finding a position in each section, starting with least populated
-    for (const { section } of sectionBubbleCounts) {
-      const sectionStart = section * sectionWidth;
-      const sectionEnd = Math.min(GRID_COLS, (section + 1) * sectionWidth);
-      
-      // Try multiple positions within this section with more attempts for better distribution
-      for (let attempt = 0; attempt < 8; attempt++) {
-        // Generate a position within this section, but ensure some spacing between bubbles
-        const randomOffset = Math.random() * (sectionEnd - sectionStart - 1);
-        const gridX = sectionStart + Math.floor(randomOffset);
-        const x = ((gridX + 0.5) / GRID_COLS) * 100; // Convert to percentage
-        
-        // Check if this position and surrounding cells are free
-        let positionIsFree = true;
-        
-        // Check surrounding grid cells based on bubble size to prevent overlaps
-        for (let i = Math.max(0, gridX - halfBubbleWidth); 
-             i <= Math.min(GRID_COLS - 1, gridX + halfBubbleWidth); i++) {
-          // Only check for bubbles near the bottom area where new bubbles appear
-          // This is crucial for preventing overlaps at bubble generation
-          const bottomBubbles = occupiedPositionsRef.current[i].filter(b => b.y > 80);
-          
-          if (bottomBubbles.length > 0) {
-            positionIsFree = false;
-            break;
-          }
-        }
-        
-        if (positionIsFree) {
-          return { x, size };
-        }
-      }
-    }
-    
-    // If all attempts with preferred sections failed, try completely random positions
-    for (let attempt = 0; attempt < 10; attempt++) {
-      // Generate a position between 2% and 98% of the container width
-      const x = 2 + Math.random() * 96;
-      const gridX = Math.floor(x / (100 / GRID_COLS));
-      const safeGridX = Math.max(0, Math.min(GRID_COLS - 1, gridX));
-      
-      // Less strict check - just make sure immediate position isn't too crowded
-      // Check bubbles positioned at the very bottom where new bubbles will appear
-      const immediate = occupiedPositionsRef.current[safeGridX].filter(b => b.y > 80);
-      
-      if (immediate.length < 1) {
-        return { x, size };
-      }
-    }
-    
-    // If all attempts failed, just return a random position anyway
-    return { 
-      x: 2 + Math.random() * 96, // Keep within 2-98% range
-      size: minSize + (maxSize - minSize) * 0.75 // Use a more moderate size for fallback bubbles
+    return {
+      id: Date.now() + Math.random(),
+      number: num,
+      isOdd: num % 2 !== 0,
+      x,
+      size
     };
   };
 
-  // Continuously generate new bubbles
   useEffect(() => {
-    // Only generate bubbles if the game is active, not over, time remains, and we're under the bubble limit
-    if (gameActive && !gameOver && timeRemaining > 0 && bubbles.length < Math.min(Math.max(12, level + 10), 20)) {
-      const timer = setInterval(() => { 
-        if (gameActive && !gameOver) {
-          const num = Math.floor(Math.random() * 100) + 1;
-          const { x, size } = findFreePosition(40, 65);
-          // Randomize the vertical position for new bubbles
-          const y = Math.random() * 60 + 20; // 20-80% vertical position
-          // Mark this position as occupied in the grid
-          const gridX = Math.floor(x / (100 / GRID_COLS));
-          const safeGridX = Math.max(0, Math.min(GRID_COLS - 1, gridX));
-
-          // Calculate bubble width in grid cells for better collision prevention
-          const bubbleWidthInCells = Math.ceil((size / (window.innerWidth * 0.8)) * GRID_COLS);
-          const halfBubbleWidth = Math.floor(bubbleWidthInCells / 2);
-
-          // Mark adjacent grid cells as occupied
-          for (let i = Math.max(0, safeGridX - halfBubbleWidth); 
-               i <= Math.min(GRID_COLS - 1, safeGridX + halfBubbleWidth); i++) {
-            occupiedPositionsRef.current[i].push({
-              id: Date.now() + Math.random(),
-              y: y, // Store vertical position
-            });
-          }
-          
-          // Add the new bubble to the game
-          const newBubble = {
-            id: Date.now() + Math.random(),
-            number: num,
-            isOdd: num % 2 !== 0,
-            x: x, // Position from findFreePosition
-            y: y,
-            size, // Use the size from findFreePosition
-            // Generate random speeds for X and Y directions
-            speedX: (2 + Math.random() * (level * 0.3)) * (Math.random() > 0.5 ? 1 : -1),
-            speedY: (2 + Math.random() * (level * 0.3)) * (Math.random() > 0.5 ? 1 : -1)
-          };
-          
-          setBubbles(prev => [...prev, newBubble]);
-        }
-      }, Math.max(300, 600 - (level * 30))); // Adjust generation speed based on level
-
-      return () => clearInterval(timer);
-    }
-  }, [bubbles.length, gameActive, gameOver, level, timeRemaining]);
-
-  // Handle bubbles that need to be removed after animation completes
-  useEffect(() => {
-    if (bubblesToRemoveRef.current.size > 0) {
-      const bubblesIdsToRemove = Array.from(bubblesToRemoveRef.current);
-      setBubbles(prev => prev.filter(b => !bubblesIdsToRemove.includes(b.id)));
-      
-      // Clear the set after processing
-      bubblesToRemoveRef.current = new Set();
-      
-      // Also clean up old entries in occupiedPositionsRef
-      // This helps prevent memory leaks and keeps collision detection accurate
-      // Update grid structure - calculate more accurately when bubbles leave the screen
-      // This cleans up positions for better collision detection
-      for (let col = 0; col < GRID_COLS; col++) {
-        // Filter out bubbles that have moved significantly up the screen
-        // y < 0 means they've left the top of the screen, but we give some buffer room
-        occupiedPositionsRef.current[col] = occupiedPositionsRef.current[col].filter(b => b.y > -20 && b.y < 120);
+    const interval = setInterval(() => {
+      if (gameActive && !gameOver && timeRemaining > 0 && bubbles.length < 15) {
+        setBubbles(prev => [...prev, generateBubble()]);
       }
-    }
-  }, [bubblesToRemoveRef.current.size]);
-  // Timer countdown for 2 minutes of continuous play
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [gameActive, gameOver, bubbles, timeRemaining]);
+
   useEffect(() => {
-    if (gameActive && !gameOver && timeRemaining > 0) {
-      const timer = setInterval(() => {
+    const timer = setInterval(() => {
+      if (gameActive && !gameOver) {
         setTimeRemaining(prev => {
           if (prev <= 1) {
-            // Time's up - end the game
-            setGameOver(true);
-            setGameActive(false); 
             clearInterval(timer);
-            
-            // Calculate stars based on score and level when time runs out
+            setGameOver(true);
+            setGameActive(false);
             if (score >= 150) setStars(3);
             else if (score >= 100) setStars(2);
             else if (score >= 50) setStars(1);
@@ -317,106 +101,38 @@ const BubblePop = ({ onBack }) => {
           }
           return prev - 1;
         });
-      }, 1000);
-      
-      return () => clearInterval(timer);
-    }
-  }, [gameActive, gameOver, timeRemaining]);
+      }
+    }, 1000);
 
-  // Handle bubble tap/click
+    return () => clearInterval(timer);
+  }, [gameActive, gameOver]);
+
   const handleBubbleTap = (bubble) => {
     if (!gameActive || gameOver) return;
-    
-    const isCorrect = 
-      (currentRule === 'odd' && bubble.isOdd) || 
+
+    const isCorrect =
+      (currentRule === 'odd' && bubble.isOdd) ||
       (currentRule === 'even' && !bubble.isOdd);
 
-    // Always add a point when a bubble is manually popped
-    setScore(prev => prev + 1);
-    
-    // Remove the bubble
+    setScore(prev => prev + (isCorrect ? 10 : 1));
     setBubbles(prev => prev.filter(b => b.id !== bubble.id));
+    setBubblesPopped(prev => prev + (isCorrect ? 1 : 0));
+    if (!isCorrect) setLives(prev => prev - 1);
 
-    // Also remove the bubble from occupied positions grid for better tracking
-    const gridX = Math.floor(bubble.x / (100 / GRID_COLS));
-    const safeGridX = Math.max(0, Math.min(GRID_COLS - 1, gridX));
-    
-    // Calculate bubble width in grid cells
-    const bubbleWidthInCells = Math.ceil((bubble.size / (window.innerWidth * 0.8)) * GRID_COLS);
-    const halfBubbleWidth = Math.floor(bubbleWidthInCells / 2);
-    
-    // Clear this bubble from the grid in all cells it might occupy
-    for (let i = Math.max(0, safeGridX - halfBubbleWidth); 
-         i <= Math.min(GRID_COLS - 1, safeGridX + halfBubbleWidth); i++) {
-      // Use string comparison since y is now '100vh'
-      occupiedPositionsRef.current[i] = occupiedPositionsRef.current[i].filter(b => b.id !== bubble.id);
-    }
-
-    // Handle scoring and feedback
-    if (isCorrect) {
-      // Add bonus points for correct pops
-      setScore(prev => prev + 9); // +1 already added, so +9 more for a total of +10
-      setBubblesPopped(prev => prev + 1);
-
-      toast.success(`Correct! ${bubble.number} is ${bubble.isOdd ? 'odd' : 'even'}!`, {
-        icon: <CheckCircleIcon className="text-green-500 w-5 h-5" />,
+    toast[isCorrect ? 'success' : 'error'](
+      `${bubble.number} is ${bubble.isOdd ? 'odd' : 'even'}!`,
+      {
+        icon: isCorrect
+          ? <CheckCircleIcon className="text-green-500 w-5 h-5" />
+          : <XCircleIcon className="text-red-500 w-5 h-5" />,
         autoClose: 1000
-      });
-    } else {
-      setLives(prev => prev - 1);
-      
-      toast.error(`Oops! ${bubble.number} is ${bubble.isOdd ? 'odd' : 'even'}!`, {
-        icon: <XCircleIcon className="text-red-500 w-5 h-5" />,
-        autoClose: 1000
-      });
-    }
+      }
+    );
   };
 
-  // Check for level progression
-  useEffect(() => {
-    if (bubblesPopped >= requiredPops && gameActive) {
-      // Level up
-      setLevel(prev => prev + 1);
-      setBubblesPopped(0);
-      setRequiredPops(prev => Math.min(prev + 2, 15)); // More pops required as level increases, max 15
-      
-      // Switch rule
-      setCurrentRule(prev => prev === 'odd' ? 'even' : 'odd');
-      
-      toast.info(`Level ${level + 1}! Now pop ${currentRule === 'odd' ? 'EVEN' : 'ODD'} numbers!`, {
-        autoClose: 1500
-      });
-    }
-  }, [bubblesPopped, requiredPops, gameActive, level, currentRule]);
-
-  // Check for game over condition
-  useEffect(() => {
-    if (lives <= 0 && gameActive) {
-      setGameOver(true);
-      setGameActive(false);
-      
-      // Calculate stars based on score and level
-      if (score >= 150) setStars(3);
-      else if (score >= 100) setStars(2);
-      else if (score >= 50) setStars(1);
-      else setStars(0);
-    }
-  }, [lives, gameActive, score]);
-  
-  // Format time as MM:SS
-  const formatTime = (totalSeconds) => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  const handleBubbleExit = (id) => {
+    setBubbles(prev => prev.filter(b => b.id !== id));
   };
-  
-  // Calculate time percentage for progress bar
-  const timePercentage = (timeRemaining / 120) * 100;
-  
-  // Determine if time is running low (less than 30 seconds)
-  const isTimeRunningLow = timeRemaining <= 30;
-
-
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -430,104 +146,38 @@ const BubblePop = ({ onBack }) => {
         >
           <ArrowLeftIcon className="w-5 h-5" />
         </motion.button>
-        
-        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-200 flex items-center justify-center mr-3">
-          <span className="text-xl">🎮</span>
-        </div>
-        
         <h2 className="text-xl md:text-2xl font-bold">
           Bubble Pop - Odd and Even Numbers
         </h2>
       </div>
-      
-      {/* Instructions Modal */}
-      <AnimatePresence>
-        {showInstructions && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="card max-w-2xl mx-auto text-center p-6 mb-6"
+
+      {/* Game */}
+      {showInstructions && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          className="card max-w-2xl mx-auto text-center p-6 mb-6"
+        >
+          <h3 className="text-2xl font-bold mb-4">How to Play</h3>
+          <p className="mb-4">Tap the {currentRule.toUpperCase()} numbers as they float up!</p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={startGame}
+            className="btn-primary px-8 py-3 text-lg"
           >
-            <h3 className="text-2xl font-bold mb-4">How to Play</h3>
-            <div className="space-y-4 text-left mb-6">
-              <div className="flex items-start">
-                <span className="bg-blue-100 dark:bg-blue-800 rounded-full w-8 h-8 flex items-center justify-center text-blue-600 dark:text-blue-200 mr-3">1</span>
-                <p>Bubbles with numbers will float upward on the screen</p>
-              </div>
-              <div className="flex items-start">
-                <span className="bg-blue-100 dark:bg-blue-800 rounded-full w-8 h-8 flex items-center justify-center text-blue-600 dark:text-blue-200 mr-3">2</span>
-                <p>Tap/click ONLY on bubbles that match the rule (odd or even numbers)</p>
-              </div>
-              <div className="flex items-start">
-                <span className="bg-blue-100 dark:bg-blue-800 rounded-full w-8 h-8 flex items-center justify-center text-blue-600 dark:text-blue-200 mr-3">3</span>
-                <p>Get points for correct answers and try to reach the highest level!</p>
-              </div>
-              <div className="flex items-start">
-                <InfoIcon className="text-blue-500 w-6 h-6 mr-3 mt-1" />
-                <p><strong>Remember:</strong> Odd numbers cannot be divided equally by 2 (like 1, 3, 5, 7, 9...) while even numbers can (like 2, 4, 6, 8, 10...)</p>
-              </div>
-            </div>
-            
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={startGame}
-              className="btn-primary px-8 py-3 text-lg"
-            >
-              Start Game
-            </motion.button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      
-      {/* Game Area */}
+            Start Game
+          </motion.button>
+        </motion.div>
+      )}
+
       {gameActive && (
         <div className="card p-6 mb-6 relative overflow-hidden min-h-[500px]">
-          {/* Game stats row */}
-          <div className="flex justify-between items-center mb-4 relative z-10">
-            <div className="flex flex-col md:flex-row md:space-x-4">
-              <div className="bg-primary-light/20 dark:bg-primary-dark/30 px-3 py-1 rounded-full mb-2 md:mb-0">
-                Level: {level}
-              </div>
-              <div className="bg-secondary-light/20 dark:bg-secondary-dark/30 px-3 py-1 rounded-full">
-                Score: {score}
-              </div>
-            </div>
-            <div className="flex flex-col items-end"> 
-              <div className={`timer-display px-3 py-1 rounded-full mb-2 ${
-                isTimeRunningLow ? 'bg-red-500/80 text-white animate-pulse' : 'bg-blue-500/20'
-              }`}>
-                <span className="font-mono">
-                  {formatTime(timeRemaining)}
-                </span>
-              </div>
-              <div className="flex items-center gap-1">
-                {[...Array(lives)].map((_, i) => (
-                  <div key={i} className="w-6 h-6 text-red-500">❤️</div>
-                ))}
-              </div>
-            </div>
+          <div className="flex justify-between mb-4">
+            <div>Level: {level} | Score: {score}</div>
+            <div>Lives: {'❤️'.repeat(lives)} | Time: {Math.floor(timeRemaining / 60)}:{`${timeRemaining % 60}`.padStart(2, '0')}</div>
           </div>
-          
-          {/* Progress bar for bubbles popped */}
-          <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full mb-4">
-            <div 
-              className="h-full bg-blue-500 rounded-full transition-all duration-300 ease-out" 
-              style={{ width: `${(bubblesPopped / requiredPops) * 100}%` }}>
-            </div>
-          </div>
-          
-          {/* Time remaining progress bar */}
-          <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full mb-4">
-            <div 
-              className={`h-full rounded-full transition-all duration-1000 ease-linear ${
-                isTimeRunningLow ? 'bg-red-500' : 'bg-green-500'
-              }`}
-              style={{ width: `${timePercentage}%` }}></div>
-          </div>
-          
-          {/* Bubble play area */}
           <BubbleZone title={`POP ${currentRule.toUpperCase()} NUMBERS!`} ref={playAreaRef}>
             <AnimatePresence>
               {bubbles.map(bubble => (
@@ -535,96 +185,43 @@ const BubblePop = ({ onBack }) => {
                   key={bubble.id}
                   bubble={bubble}
                   onClick={handleBubbleTap}
-                  onComplete={(id) => bubblesToRemoveRef.current.add(id)}
+                  onComplete={handleBubbleExit}
                 />
               ))}
             </AnimatePresence>
           </BubbleZone>
         </div>
       )}
-      
-      {/* Game Over Screen */}
-      <AnimatePresence>
-        {gameOver && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="card max-w-2xl mx-auto text-center p-6"
+
+      {/* Game Over */}
+      {gameOver && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          className="card max-w-2xl mx-auto text-center p-6"
+        >
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">Game Over!</h2>
+          <div className="text-xl mb-6">Final Score: {score}</div>
+          <div className="text-xl mb-6">Level Reached: {level}</div>
+          <div className="flex justify-center gap-3 mb-6">
+            {[...Array(3)].map((_, i) => (
+              <StarIcon
+                key={i}
+                className={`w-10 h-10 ${i < stars ? 'text-yellow-400' : 'text-gray-300'}`}
+              />
+            ))}
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={startGame}
+            className="btn-primary px-8 py-3 text-lg"
           >
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">Game Over!</h2>
-            
-            <div className="py-5">
-              <div className="text-4xl font-bold mb-2">
-                Final Score: {score}
-              </div>
-              <div className="text-xl mb-2">Time Played: {formatTime(120 - timeRemaining)}</div>
-              <div className="text-xl mb-6">Level Reached: {level}</div>
-              
-              <div className="flex justify-center space-x-4 mb-8">
-                {[...Array(3)].map((_, i) => (
-                  <motion.div 
-                    key={i}
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ 
-                      scale: 1, 
-                      opacity: 1, 
-                      rotate: i < stars ? [0, 15, -15, 0] : 0 
-                    }}
-                    transition={{ 
-                      delay: 0.5 + (i * 0.2),
-                      duration: 0.5,
-                      type: "spring"
-                    }}
-                  >
-                    <StarIcon 
-                      className={`w-12 h-12 ${
-                        i < stars 
-                          ? "text-yellow-400 fill-yellow-400" 
-                          : "text-surface-300 dark:text-surface-600"
-                      }`} 
-                    />
-                  </motion.div>
-                ))}
-              </div>
-              
-              <div className="text-surface-600 dark:text-surface-300 mb-8">
-                {stars === 3 ? (
-                  "Amazing job! You're a math wizard!"
-                ) : stars === 2 ? (
-                  "Great work! You're getting good at identifying odd and even numbers!"
-                ) : stars === 1 ? (
-                  "Good effort! Keep practicing to get better!"
-                ) : (
-                  "Don't worry, with more practice you'll get better at odd and even numbers!"
-                )}
-              </div>
-              
-              <div className="flex flex-col sm:flex-row justify-center gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={startGame}
-                  className="btn-primary flex items-center justify-center gap-2"
-                >
-                  <RefreshCwIcon className="w-5 h-5" />
-                  Play Again
-                </motion.button>
-                
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={onBack}
-                  className="btn-secondary flex items-center justify-center gap-2"
-                >
-                  <ArrowLeftIcon className="w-5 h-5" />
-                  Back to Subjects
-                </motion.button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            Play Again
+          </motion.button>
+        </motion.div>
+      )}
     </div>
   );
 };
