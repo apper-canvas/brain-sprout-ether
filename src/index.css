@@ -518,4 +518,23 @@
 .dark .bubble-zone {
   background: linear-gradient(to bottom, rgba(30, 50, 100, 0.3), rgba(40, 60, 120, 0.3), rgba(50, 70, 140, 0.3));
 }
+
+/* Timer display styles */
+.timer-display {
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+/* Animation for when time is running low */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
 }

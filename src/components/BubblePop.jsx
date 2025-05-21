@@ -22,6 +22,7 @@ const BubblePop = ({ onBack }) => {
   const [showInstructions, setShowInstructions] = useState(true);
   const [currentRule, setCurrentRule] = useState('odd'); // 'odd' or 'even'
   const [bubblesPopped, setBubblesPopped] = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState(120); // 2 minutes in seconds
   const [requiredPops, setRequiredPops] = useState(5);
 
   // Initialize game
@@ -33,6 +34,7 @@ const BubblePop = ({ onBack }) => {
     setLives(3);
     setGameOver(false);
     setBubblesPopped(0);
+    setTimeRemaining(120); // Reset timer to 2 minutes
     setRequiredPops(5);
     setCurrentRule(Math.random() > 0.5 ? 'odd' : 'even');
     generateBubbles();
@@ -90,6 +92,27 @@ const BubblePop = ({ onBack }) => {
       return () => clearInterval(timer);
     }
   }, [bubbles.length, gameActive, gameOver, level]);
+
+  // Timer countdown for 2 minutes of continuous play
+  useEffect(() => {
+    if (gameActive && !gameOver && timeRemaining > 0) {
+      const timer = setInterval(() => {
+        setTimeRemaining(prev => {
+          if (prev <= 1) {
+            // Time's up - end the game
+            setGameOver(true);
+            setGameActive(false);
+            clearInterval(timer);
+            toast.info("Time's up! Game over.");
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      return () => clearInterval(timer);
+    }
+  }, [gameActive, gameOver, timeRemaining]);
 
   // Handle bubble tap/click
   const handleBubbleTap = (bubble) => {
@@ -151,6 +174,19 @@ const BubblePop = ({ onBack }) => {
       else setStars(0);
     }
   }, [lives, gameActive, score]);
+  
+  // Format time as MM:SS
+  const formatTime = (totalSeconds) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+  
+  // Calculate time percentage for progress bar
+  const timePercentage = (timeRemaining / 120) * 100;
+  
+  // Determine if time is running low (less than 30 seconds)
+  const isTimeRunningLow = timeRemaining <= 30;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -229,6 +265,13 @@ const BubblePop = ({ onBack }) => {
               </div>
             </div>
             <div className="flex flex-col items-end"> 
+              <div className={`timer-display px-3 py-1 rounded-full mb-2 ${
+                isTimeRunningLow ? 'bg-red-500/80 text-white animate-pulse' : 'bg-blue-500/20'
+              }`}>
+                <span className="font-mono">
+                  {formatTime(timeRemaining)}
+                </span>
+              </div>
               <div className="flex items-center gap-1">
                 {[...Array(lives)].map((_, i) => (
                   <div key={i} className="w-6 h-6 text-red-500">❤️</div>
@@ -237,12 +280,21 @@ const BubblePop = ({ onBack }) => {
             </div>
           </div>
           
-          {/* Centered game title */}
+          {/* Progress bar for bubbles popped */}
           <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full mb-4">
             <div 
               className="h-full bg-blue-500 rounded-full transition-all duration-300 ease-out" 
               style={{ width: `${(bubblesPopped / requiredPops) * 100}%` }}>
             </div>
+          </div>
+          
+          {/* Time remaining progress bar */}
+          <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full mb-4">
+            <div 
+              className={`h-full rounded-full transition-all duration-1000 ease-linear ${
+                isTimeRunningLow ? 'bg-red-500' : 'bg-green-500'
+              }`}
+              style={{ width: `${timePercentage}%` }}></div>
           </div>
           
           {/* Bubble play area */}
@@ -286,6 +338,7 @@ const BubblePop = ({ onBack }) => {
               <div className="text-4xl font-bold mb-2">
                 Final Score: {score}
               </div>
+              <div className="text-xl mb-2">Time Played: {formatTime(120 - timeRemaining)}</div>
               <div className="text-xl mb-6">Level Reached: {level}</div>
               
               <div className="flex justify-center space-x-4 mb-8">
