@@ -16,11 +16,13 @@ const FloatingBubble = ({ bubble, onClick, onComplete }) => {
   return (
     <motion.div
       className="bubble absolute cursor-pointer"
-      initial={{ y: '100vh', opacity: 0.8 }}
-      animate={{ y: '-100px', opacity: 1 }}
+      initial={{ y: 0, opacity: 0.8 }}
+      animate={{ y: -600, opacity: 1 }}
       transition={{ duration: 10, ease: 'linear' }}
       style={{
         x: `${bubble.x}%`,
+        left: `${bubble.x}%`,
+        bottom: '-80px',
         width: `${bubble.size}px`,
         height: `${bubble.size}px`
       }}
