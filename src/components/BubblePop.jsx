@@ -509,8 +509,8 @@ const BubblePop = ({ onBack }) => {
                 <motion.div
                   key={bubble.id}
                   initial={{ y: "100vh" }}
-                  animate={{
-                    y: "-100vh",
+                  animate={{ 
+                    y: "-100vh", 
                     x: [
                       `${bubble.x}%`, 
                       `calc(${bubble.x}% + ${5 + Math.random() * 15}px)`, 
@@ -519,22 +519,22 @@ const BubblePop = ({ onBack }) => {
                       `${bubble.x}%`
                     ],
                     scale: [1, 1.02, 0.98, 1.01, 1],
-                    opacity: [0.9, 1, 0.8] // Keep the opacity animation
-                  }} 
+                    opacity: [0.9, 1, 0.8]
+                  }}
                   exit={{ 
                     opacity: 0, 
                     scale: 0.8, 
-                    transition: { duration: 0.3 }
+                    transition: { duration: 0.3 } 
                   }}
                   transition={{ 
-                    y: { duration: 10, ease: "linear" }, // Fixed 10 seconds for straight upward movement
-                    x: {
-                      duration: 2.5 + Math.random() * 1, // Random duration between 2.5s and 3.5s
-                      repeat: Infinity, // Repeat indefinitely during the 10s upward motion
-                      ease: "easeInOut", // Smooth sine-like motion
+                    y: { duration: 10, ease: "linear" },
+                    x: { 
+                      duration: 2.5 + Math.random() * 1,
+                      repeat: Infinity,
+                      ease: "easeInOut",
                       times: [0, 0.25, 0.5, 0.75, 1]
                     },
-                    opacity: { duration: 10, times: [0, 0.5, 1], ease: "linear" } // Matched opacity animation duration
+                    opacity: { duration: 10, times: [0, 0.5, 1], ease: "linear" }
                   }}
                   onClick={() => handleBubbleTap(bubble)} 
                   onAnimationComplete={(definition) => {
@@ -543,7 +543,7 @@ const BubblePop = ({ onBack }) => {
                       bubblesToRemoveRef.current.add(bubble.id);
                     }
                    }}
-                  className="bubble absolute cursor-pointer" 
+                  className="bubble absolute cursor-pointer"
                   // Set custom CSS variables for the sine wave animation
                   style={{ 
                     width: `${bubble.size}px`,
