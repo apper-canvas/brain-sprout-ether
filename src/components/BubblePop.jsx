@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
@@ -24,6 +24,7 @@ const BubblePop = ({ onBack }) => {
   const [bubblesPopped, setBubblesPopped] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(120); // 2 minutes in seconds
   const [requiredPops, setRequiredPops] = useState(5);
+  const bubblesToRemoveRef = useRef(new Set());
 
   // Initialize game
   const startGame = () => {
@@ -92,6 +93,18 @@ const BubblePop = ({ onBack }) => {
       return () => clearInterval(timer);
     }
   }, [bubbles.length, gameActive, gameOver, level]);
+
+  // Handle bubbles that need to be removed after animation completes
+  useEffect(() => {
+    if (bubblesToRemoveRef.current.size > 0) {
+      const bubblesIdsToRemove = Array.from(bubblesToRemoveRef.current);
+      setBubbles(prev => prev.filter(b => !bubblesIdsToRemove.includes(b.id)));
+      
+      // Clear the set after processing
+      bubblesToRemoveRef.current.clear();
+    }
+  }, [bubblesToRemoveRef.current.size]);
+
 
   // Timer countdown for 2 minutes of continuous play
   useEffect(() => {
@@ -313,10 +326,9 @@ const BubblePop = ({ onBack }) => {
                   transition={{ y: { duration: 8 / bubble.speed, ease: "linear" }, x: { duration: 3 + Math.random() * 2, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }, opacity: { duration: 8 / bubble.speed, times: [0, 0.5, 1], ease: "linear" } }}
                   onClick={() => handleBubbleTap(bubble)} 
                   onAnimationComplete={(definition) => {
-                    // Only remove bubbles when they've completed the y-axis animation (fully off screen)
+                    // Mark the bubble for removal when animation completes instead of directly updating state
                     if (definition && definition.y === '-120%') {
-                      // Remove bubble when it fully exits the top (y < 0)
-                      setBubbles(prev => prev.filter(b => b.id !== bubble.id));
+                      bubblesToRemoveRef.current.add(bubble.id);
                     }
                   }}
                   className="bubble absolute cursor-pointer"
