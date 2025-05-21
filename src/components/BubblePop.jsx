@@ -42,11 +42,25 @@ const BubblePop = ({ onBack }) => {
   const generateBubbles = useCallback(() => {
     // Clear existing bubbles
     setBubbles([]);
-
-    // We'll create bubbles one by one with random timing
-    // instead of generating them all at once
-          left: Math.random() * 90, // % from left - full width distribution
-    // This creates a more dynamic appearance of bubbles
+    
+    // Create a starter set of bubbles (will be continued by the useEffect)
+    const initialBubbles = Array.from({ length: Math.min(5, level + 2) }, () => {
+      // Generate random number between 1 and 100
+      const num = Math.floor(Math.random() * 100) + 1;
+      // Generate random x position along the width
+      const randomXPos = 5 + Math.random() * 90;
+      
+      return {
+        id: Date.now() + Math.random(),
+        number: num,
+        isOdd: num % 2 !== 0,
+        x: randomXPos, // Random position along the width
+        y: 100, // Start at the bottom edge of the game screen
+        size: Math.random() * 20 + 50, // Size between 50-70px
+        speed: 2 + Math.random() * (level * 0.5),
+      };
+    });
+    setBubbles(initialBubbles);
   }, [level]);
 
   // Continuously generate new bubbles
