@@ -174,6 +174,7 @@
     transform-origin: bottom;
     mix-blend-mode: multiply;
   .lava-background::before,
+  
   .lava-background::after {
     border-top-left-radius: 40% 20px;
     border-top-right-radius: 60% 20px;
@@ -227,24 +228,13 @@
     box-shadow: 0 0 15px 5px rgba(255, 70, 0, 0.4);
     animation: lava-bubble-timer 3s ease-in-out infinite, lava-glow 2.5s infinite;
     font-weight: bold;
-    text-shadow: 0 2px 3px rgba(0, 0, 0, 0.4);
-    box-shadow: 0 0 12px 4px rgba(255, 150, 90, 0.4);
-    border-radius: 20px;
-    content: '⭐';
-      45deg, 
-      rgba(255, 0, 0, 0.95), 
-      rgba(255, 60, 0, 0.9), 
-      rgba(255, 120, 0, 0.95)
-    );
     background: linear-gradient(
+      45deg,
       rgba(255, 100, 60, 0.9), 
       rgba(255, 130, 80, 0.85), 
       rgba(255, 160, 90, 0.9)
     );
-    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
-    box-shadow: 0 0 20px 8px rgba(255, 50, 0, 0.5);
-    animation: lava-bubble-timer 2s ease-in-out infinite, lava-glow 1.5s infinite;
-    font-weight: bold;
+    content: '⭐';
     text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
     box-shadow: 0 0 15px 6px rgba(255, 130, 80, 0.5);
     border-radius: 20px;
@@ -261,6 +251,8 @@
     align-items: center;
     justify-content: center;
     background: transparent;
+  }
+  
   .lava-background::after {
     left: 65%;
     bottom: 15%;
