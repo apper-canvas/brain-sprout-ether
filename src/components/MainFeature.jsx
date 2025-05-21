@@ -140,6 +140,7 @@ const MainFeature = ({ grade }) => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [answered, setAnswered] = useState(false);
   const [score, setScore] = useState(0);
+  const [waterEffect, setWaterEffect] = useState(false);
   const [quizComplete, setQuizComplete] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
   const [stars, setStars] = useState(0);
@@ -153,6 +154,7 @@ const MainFeature = ({ grade }) => {
     setScore(0);
     setQuizComplete(false);
     toast.info(`Starting ${subject.name} quiz!`);
+    setWaterEffect(false);
     
     // Only start the timer for math subject
     if (subject.id === 'math') {
@@ -169,6 +171,7 @@ const MainFeature = ({ grade }) => {
     setQuizComplete(false);
     setTimerActive(false);
     setTimeLeft(30);
+    setWaterEffect(false);
     clearInterval(timerRef.current);
   };
 
@@ -186,6 +189,7 @@ const MainFeature = ({ grade }) => {
         autoClose: 2000
       });
       setScore(prev => prev + 1);
+      setWaterEffect(true);
       
       // Pause the timer
       if (selectedSubject.id === 'math') {
@@ -202,6 +206,7 @@ const MainFeature = ({ grade }) => {
   };
 
   const handleNextQuestion = () => {
+    setWaterEffect(false);
     setShowExplanation(false);
     setAnswered(false);
     setSelectedAnswer(null);
@@ -266,6 +271,7 @@ const MainFeature = ({ grade }) => {
     setQuizComplete(false);
     setShowExplanation(false);
     setTimeLeft(30);
+    setWaterEffect(false);
   };
 
   // Helper function to get the appropriate icon component
@@ -420,7 +426,7 @@ const MainFeature = ({ grade }) => {
             </div>
             
             <div className={`bg-white dark:bg-surface-800 rounded-xl shadow-card p-6 
-                ${selectedSubject.id === 'math' ? 'question-container relative' : ''}`}
+                ${selectedSubject.id === 'math' ? `question-container relative ${waterEffect ? 'container-water-effect' : ''}` : ''}`}
             >
               <div className="flex justify-between items-center mb-4">
                 <span className="text-surface-500 dark:text-surface-400">
@@ -428,13 +434,14 @@ const MainFeature = ({ grade }) => {
                 </span>
 
                 {selectedSubject.id === 'math' && (
-                  <div className="lava-background" style={{'--lava-height': `${((30 - timeLeft) / 30) * 100}%`}}></div>
+                  <div className="lava-background" 
+                       style={{'--lava-height': `${((30 - timeLeft) / 30) * 100}%`}}></div>
                 )}
 
                 <div className="flex items-center space-x-3">
                   {selectedSubject.id === 'math' && (
                     <div className={`px-3 py-1 rounded-full font-bold relative z-10 ${
-                      timeLeft <= 10 ? 'lava-effect-urgent' : 'lava-effect'
+                      timeLeft <= 10 ? 'lava-effect-urgent' : 'lava-effect' 
                     }`}>
                       <span className="flex items-center gap-1">
                         <TimerIcon className="w-4 h-4" /> {timeLeft}s
@@ -446,7 +453,7 @@ const MainFeature = ({ grade }) => {
               </div>
               
               <div className="mb-8">
-                <h3 className="text-xl font-semibold mb-6 relative z-10">
+                <h3 className="text-xl font-semibold mb-6 relative z-10 text-surface-900 dark:text-surface-100">
                   {selectedSubject.questions[currentQuestion].question}
                 </h3>
                 
@@ -525,7 +532,7 @@ const MainFeature = ({ grade }) => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleNextQuestion}
-                    className="btn-primary"
+                    className="btn-primary relative z-10"
                   >
                     {currentQuestion < selectedSubject.questions.length - 1 
                       ? "Next Question" 
