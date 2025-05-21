@@ -503,4 +503,19 @@
   display: inline-block;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
+
+/* BubbleZone styling */
+.bubble-zone {
+  background: linear-gradient(to bottom, 
+    rgba(235, 245, 255, 0.7), 
+    rgba(225, 235, 255, 0.7), 
+    rgba(215, 225, 255, 0.7)
+  );
+  border: 2px solid rgba(173, 216, 230, 0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.dark .bubble-zone {
+  background: linear-gradient(to bottom, rgba(30, 50, 100, 0.3), rgba(40, 60, 120, 0.3), rgba(50, 70, 140, 0.3));
+}
 }

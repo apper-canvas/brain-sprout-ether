@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
+import BubbleZone from './BubbleZone';
 
 const CheckCircleIcon = getIcon('check-circle');
 const XCircleIcon = getIcon('x-circle');
@@ -245,13 +246,7 @@ const BubblePop = ({ onBack }) => {
           </div>
           
           {/* Bubble play area */}
-          <div className="relative h-[400px] bg-gradient-to-b from-blue-50/50 to-purple-50/50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg overflow-hidden">
-            {/* Centered game title */} 
-            <div className="absolute top-3 left-0 right-0 z-10 text-center">
-              <div className="game-title text-2xl md:text-3xl font-extrabold">
-                POP {currentRule.toUpperCase()} NUMBERS!
-              </div>
-            </div>
+          <BubbleZone title={`POP ${currentRule.toUpperCase()} NUMBERS!`}>
             <AnimatePresence>
               {bubbles.map(bubble => (
                 <motion.div
@@ -272,7 +267,7 @@ const BubblePop = ({ onBack }) => {
                 </motion.div>
               ))}
             </AnimatePresence>
-          </div>
+          </BubbleZone>
         </div>
       )}
       
