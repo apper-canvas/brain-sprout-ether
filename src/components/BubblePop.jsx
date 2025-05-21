@@ -53,15 +53,15 @@ const BubblePop = ({ onBack }) => {
       const num = Math.floor(Math.random() * 100) + 1;
       // Generate random x position along the width (covering 80% of the screen with 10% margin on each side)
       const randomXPos = 5 + Math.random() * 90;
-      
+
       return {
         id: Date.now() + Math.random(),
         number: num,
         isOdd: num % 2 !== 0,
         x: randomXPos, // Random position along the width
-        y: 100, // Start at the bottom edge of the game screen
+        y: 110, // Start below the bottom edge of the game screen
         size: Math.random() * 20 + 50, // Size between 50-70px
-        speed: 2 + Math.random() * (level * 0.5),
+        speed: 1 + Math.random() * (level * 0.3), // Slightly slower speed for better visibility
       };
     });
     setBubbles(initialBubbles);
@@ -76,14 +76,14 @@ const BubblePop = ({ onBack }) => {
           const num = Math.floor(Math.random() * 100) + 1; 
           // Generate random x position along the bottom of the screen
           const randomXPos = 5 + Math.random() * 90;
-          
+
           const newBubble = {
             id: Date.now(),
             number: num,
             isOdd: num % 2 !== 0,
             x: randomXPos, // Random position along the bottom
-            y: 100, // Start at the bottom edge of the game screen
-            size: Math.random() * 20 + 50, // Size between 50-70px
+            y: 110, // Start below the bottom edge of the game screen
+            size: Math.random() * 20 + 40, // Size between 40-60px for variety
             speed: 2 + Math.random() * (level * 0.5),
           };
           setBubbles(prev => [...prev, newBubble]);
@@ -104,7 +104,6 @@ const BubblePop = ({ onBack }) => {
       bubblesToRemoveRef.current.clear();
     }
   }, [bubblesToRemoveRef.current.size]);
-
 
   // Timer countdown for 2 minutes of continuous play
   useEffect(() => {
@@ -134,15 +133,19 @@ const BubblePop = ({ onBack }) => {
     const isCorrect = 
       (currentRule === 'odd' && bubble.isOdd) || 
       (currentRule === 'even' && !bubble.isOdd);
+
+    // Always add a point when a bubble is manually popped
+    setScore(prev => prev + 1);
     
     // Remove the bubble
     setBubbles(prev => prev.filter(b => b.id !== bubble.id));
     
     // Handle scoring and feedback
     if (isCorrect) {
-      setScore(prev => prev + 10);
+      // Add bonus points for correct pops
+      setScore(prev => prev + 9); // +1 already added, so +9 more for a total of +10
       setBubblesPopped(prev => prev + 1);
-      
+
       toast.success(`Correct! ${bubble.number} is ${bubble.isOdd ? 'odd' : 'even'}!`, {
         icon: <CheckCircleIcon className="text-green-500 w-5 h-5" />,
         autoClose: 1000
@@ -317,20 +320,20 @@ const BubblePop = ({ onBack }) => {
                 <motion.div
                   key={bubble.id}
                   initial={{ x: `${bubble.x}%`, y: `${bubble.y}%`, opacity: 0.7 }}
-                  animate={{ 
-                    y: [null, '-120%'],  
-                    x: [`${bubble.x}%`, `${bubble.x - 15 + Math.random() * 30}%`], 
-                    opacity: [0.7, 1, 0.7] 
+                  animate={{
+                    y: ["110%", "-20%"], // Start from below the screen, end above it
+                    x: [`${bubble.x}%`, `${bubble.x - 10 + Math.random() * 20}%`], // Gentle side-to-side movement
+                    opacity: [0.7, 1, 0.7]
                   }}
-                  exit={{ opacity: 0 }}
-                  transition={{ y: { duration: 8 / bubble.speed, ease: "linear" }, x: { duration: 3 + Math.random() * 2, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }, opacity: { duration: 8 / bubble.speed, times: [0, 0.5, 1], ease: "linear" } }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ y: { duration: 10 / bubble.speed, ease: "linear" }, x: { duration: 4 + Math.random() * 3, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }, opacity: { duration: 10 / bubble.speed, times: [0, 0.5, 1], ease: "linear" } }}
                   onClick={() => handleBubbleTap(bubble)} 
                   onAnimationComplete={(definition) => {
-                    // Mark the bubble for removal when animation completes instead of directly updating state
-                    if (definition && definition.y === '-120%') {
+                    // Only remove the bubble when it's fully off the top of the screen
+                    if (definition === "y" || (definition && definition.y === "-20%")) {
                       bubblesToRemoveRef.current.add(bubble.id);
                     }
-                  }}
+                   }}
                   className="bubble absolute cursor-pointer"
                   style={{ width: `${bubble.size}px`, height: `${bubble.size}px` }}
                 >
