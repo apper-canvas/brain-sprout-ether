@@ -30,6 +30,9 @@ const FloatingBubble = ({ bubble, onClick, onComplete }) => {
       onClick={() => onClick(bubble)}
     >
       <span className="text-xl font-bold">{bubble.number}</span>
+      <motion.div 
+        onAnimationComplete={() => onComplete(bubble.id)} 
+      />
     </motion.div>
   );
 };

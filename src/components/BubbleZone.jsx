@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 const BubbleZone = forwardRef(({ children, title }, ref) => {
   return (
     <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
+      <h3 className="game-title fixed z-10 top-4 left-1/2 transform -translate-x-1/2">
       animate={{ opacity: 1, scale: 1 }}
       ref={ref}
       className="bubble-zone relative h-[500px] w-full rounded-lg overflow-hidden shadow-lg"
