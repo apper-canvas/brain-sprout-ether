@@ -539,9 +539,10 @@ const BubblePop = ({ onBack }) => {
                   className="bubble absolute cursor-pointer" 
                   // Set custom CSS variables for the sine wave animation
                   style={{ 
-                    width: `${bubble.size}px`, 
-                    height: `${bubble.size}px`, 
-                    "--amplitude": `${5 + Math.random() * 15}px`, // Random amplitude between 5px and 20px
+                    width: `${bubble.size}px`,
+                    height: `${bubble.size}px`,
+                    "--amplitude": `${5 + Math.random() * 15}px` // Random amplitude between 5px and 20px
+                  }}
                   }}>
                   <span className="text-xl font-bold">{bubble.number}</span>
                 </motion.div>
