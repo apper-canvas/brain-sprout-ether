@@ -58,7 +58,7 @@ const BubblePop = ({ onBack }) => {
         x: Math.random() * 100, // Full screen width (0-100%)
         y: 110 + Math.random() * 10, // Start below the visible area
         size: Math.random() * 20 + 50, // Size between 50-70px
-        speed: 2 + Math.random() * (level * 0.5) // Speed increases with level
+        speed: 2 + Math.random() * (level * 0.5), // Speed increases with level
       });
     }
     
@@ -77,7 +77,7 @@ const BubblePop = ({ onBack }) => {
             x: Math.random() * 100, // Full screen width (0-100%)
             y: 110 + Math.random() * 20,
             size: Math.random() * 20 + 50,
-            speed: 2 + Math.random() * (level * 0.5)
+            speed: 2 + Math.random() * (level * 0.5),
           };
           newBubble.isOdd = newBubble.number % 2 !== 0;
           
@@ -257,9 +257,10 @@ const BubblePop = ({ onBack }) => {
                   key={bubble.id}
                   initial={{ x: `${bubble.x}%`, y: `${bubble.y}%`, opacity: 0.7 }}
                   animate={{ y: [null, '-120%'], x: [`${bubble.x}%`, `${bubble.x - 5 + Math.random() * 10}%`], opacity: [0.7, 1, 0.7] }}
+                  whileInView={{ x: [`${bubble.x}%`, `${bubble.x - 10 + Math.random() * 20}%`] }}
                   exit={{ scale: 1.5, opacity: 0 }}
-                  transition={{ y: { duration: 8 / bubble.speed, ease: "linear" }, opacity: { duration: 8 / bubble.speed, times: [0, 0.5, 1], ease: "linear" } }}
-                  onClick={() => handleBubbleTap(bubble)}
+                  transition={{ y: { duration: 8 / bubble.speed, ease: "linear" }, x: { duration: 3, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }, opacity: { duration: 8 / bubble.speed, times: [0, 0.5, 1], ease: "linear" } }}
+                  onClick={() => handleBubbleTap(bubble)} 
                   className="bubble absolute cursor-pointer"
                   style={{ width: `${bubble.size}px`, height: `${bubble.size}px` }}
                 >
