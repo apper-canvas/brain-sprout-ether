@@ -305,14 +305,21 @@ const BubblePop = ({ onBack }) => {
                   key={bubble.id}
                   initial={{ x: `${bubble.x}%`, y: `${bubble.y}%`, opacity: 0.7 }}
                   animate={{ 
-                    y: [null, '-100%'],  
+                    y: [null, '-120%'],  
                     x: [`${bubble.x}%`, `${bubble.x - 15 + Math.random() * 30}%`], 
                     opacity: [0.7, 1, 0.7] 
                   }}
                   exit={{ opacity: 0 }}
                   transition={{ y: { duration: 8 / bubble.speed, ease: "linear" }, x: { duration: 3 + Math.random() * 2, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }, opacity: { duration: 8 / bubble.speed, times: [0, 0.5, 1], ease: "linear" } }}
-                   onClick={() => handleBubbleTap(bubble)} 
-                   className="bubble absolute cursor-pointer"
+                  onClick={() => handleBubbleTap(bubble)} 
+                  onAnimationComplete={(definition) => {
+                    // Only remove bubbles when they've completed the y-axis animation (fully off screen)
+                    if (definition && definition.y === '-120%') {
+                      // Remove bubble when it fully exits the top (y < 0)
+                      setBubbles(prev => prev.filter(b => b.id !== bubble.id));
+                    }
+                  }}
+                  className="bubble absolute cursor-pointer"
                   style={{ width: `${bubble.size}px`, height: `${bubble.size}px` }}
                 >
                   <span className="text-xl font-bold">{bubble.number}</span>
