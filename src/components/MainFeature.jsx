@@ -420,18 +420,20 @@ const MainFeature = ({ grade }) => {
             </div>
             
             <div className={`bg-white dark:bg-surface-800 rounded-xl shadow-card p-6 
-                ${selectedSubject.id === 'math' ? 'question-container' : ''}`}
-                data-time-percent={selectedSubject.id === 'math' ? ((30 - timeLeft) / 30) * 100 : 0}
-                style={selectedSubject.id === 'math' ? {'--lava-height': `${((30 - timeLeft) / 30) * 100}%`} : {}}
+                ${selectedSubject.id === 'math' ? 'question-container relative' : ''}`}
             >
               <div className="flex justify-between items-center mb-4">
                 <span className="text-surface-500 dark:text-surface-400">
                   Question {currentQuestion + 1} of {selectedSubject.questions.length}
                 </span>
 
+                {selectedSubject.id === 'math' && (
+                  <div className="lava-background" style={{'--lava-height': `${((30 - timeLeft) / 30) * 100}%`}}></div>
+                )}
+
                 <div className="flex items-center space-x-3">
                   {selectedSubject.id === 'math' && (
-                    <div className={`px-3 py-1 rounded-full font-bold ${
+                    <div className={`px-3 py-1 rounded-full font-bold relative z-10 ${
                       timeLeft <= 10 ? 'lava-effect-urgent' : 'lava-effect'
                     }`}>
                       <span className="flex items-center gap-1">
@@ -444,7 +446,7 @@ const MainFeature = ({ grade }) => {
               </div>
               
               <div className="mb-8">
-                <h3 className="text-xl font-semibold mb-6">
+                <h3 className="text-xl font-semibold mb-6 relative z-10">
                   {selectedSubject.questions[currentQuestion].question}
                 </h3>
                 
@@ -466,7 +468,7 @@ const MainFeature = ({ grade }) => {
                               ? "bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700"
                               : "bg-surface-100 dark:bg-surface-700 border-surface-200 dark:border-surface-600" 
                           : "bg-surface-50 dark:bg-surface-700 border-surface-200 dark:border-surface-600 hover:bg-surface-100 dark:hover:bg-surface-600"
-                      }`}
+                      } relative z-10`}
                     >
                       <div className="flex items-center">
                         <div className={`w-6 h-6 rounded-full mr-3 flex items-center justify-center ${
@@ -532,9 +534,6 @@ const MainFeature = ({ grade }) => {
                 </motion.div>
               )}
             </div>
-            {selectedSubject.id === 'math' && (
-              <div className="lava-background"></div>
-            )}
           </motion.div>
         )}
       </AnimatePresence>
