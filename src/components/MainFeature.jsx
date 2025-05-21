@@ -323,7 +323,7 @@ const MainFeature = ({ grade }) => {
     <div className="mb-16">
       <AnimatePresence mode="wait">
         {playingBubblePop ? (
-          <BubblePop onBack={handleBackToSubjects} />
+          <motion.div><BubblePop onBack={handleBackToSubjects} /></motion.div>
         ) : playingBubbleGame ? (
           <BubbleGame onBack={handleBackToSubjects} />
         ) : !selectedSubject ? (
@@ -344,7 +344,7 @@ const MainFeature = ({ grade }) => {
             </div>
 
               {subjects.map((subject) => (
-                <motion.div
+                <motion.div 
                   key={subject.id}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
@@ -365,6 +365,7 @@ const MainFeature = ({ grade }) => {
               ))}
             </div>
           </motion.div>
+        ) : quizComplete ? (
           <motion.div
             key="quiz-results"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -394,7 +395,6 @@ const MainFeature = ({ grade }) => {
                       delay: 0.5 + (i * 0.2),
                       duration: 0.5,
                       type: "spring"
-
                     }}
                   >
                     <StarIcon 
