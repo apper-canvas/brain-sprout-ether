@@ -509,26 +509,26 @@ const BubblePop = ({ onBack }) => {
                 <motion.div
                   key={bubble.id}
                   initial={{ y: "100vh" }}
-                  animate={{ 
-                    y: "-100vh", 
+                  animate={{
+                    y: "-100vh",
                     x: [
-                      `${bubble.x}%`, 
-                      `calc(${bubble.x}% + ${5 + Math.random() * 15}px)`, 
-                      `${bubble.x}%`, 
+                      `${bubble.x}%`,
+                      `calc(${bubble.x}% + ${5 + Math.random() * 15}px)`,
+                      `${bubble.x}%`,
                       `calc(${bubble.x}% - ${5 + Math.random() * 15}px)`,
                       `${bubble.x}%`
                     ],
                     scale: [1, 1.02, 0.98, 1.01, 1],
                     opacity: [0.9, 1, 0.8]
                   }}
-                  exit={{ 
-                    opacity: 0, 
-                    scale: 0.8, 
-                    transition: { duration: 0.3 } 
+                  exit={{
+                    opacity: 0,
+                    scale: 0.8,
+                    transition: { duration: 0.3 }
                   }}
-                  transition={{ 
+                  transition={{
                     y: { duration: 10, ease: "linear" },
-                    x: { 
+                    x: {
                       duration: 2.5 + Math.random() * 1,
                       repeat: Infinity,
                       ease: "easeInOut",
