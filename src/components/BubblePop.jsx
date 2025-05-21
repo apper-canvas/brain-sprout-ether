@@ -506,18 +506,16 @@ const BubblePop = ({ onBack }) => {
             <AnimatePresence>
               {bubbles.map(bubble => (
                 // Calculate random values for each bubble's animation
-                // - Random amplitude between 10px and 25px
-                // - Random phase delay between 0s and 2s
-                // - Random duration variation between 2.5s and 3.5s
-                // These values create natural variation in the side-to-side motion
-                // while maintaining the consistent upward movement speed
-                
+                <motion.div
+                  key={bubble.id}
+                  initial={{ y: "100vh" }}
+                  animate={{
+                    y: "-100vh",
                     x: [
                       `${bubble.x}%`, 
                       `calc(${bubble.x}% + ${5 + Math.random() * 15}px)`, 
                       `${bubble.x}%`, 
                       `calc(${bubble.x}% - ${5 + Math.random() * 15}px)`,
-                      
                       `${bubble.x}%`
                     ],
                     scale: [1, 1.02, 0.98, 1.01, 1],
@@ -536,7 +534,7 @@ const BubblePop = ({ onBack }) => {
                       ease: "easeInOut", // Smooth sine-like motion
                       times: [0, 0.25, 0.5, 0.75, 1]
                     },
-                    opacity: { duration: 10, times: [0, 0.5, 1], ease: "linear" }, // Matched opacity animation duration
+                    opacity: { duration: 10, times: [0, 0.5, 1], ease: "linear" } // Matched opacity animation duration
                   }}
                   onClick={() => handleBubbleTap(bubble)} 
                   onAnimationComplete={(definition) => {
