@@ -109,12 +109,10 @@ const BubblePop = ({ onBack }) => {
     // Generate random size first
     const size = Math.random() * (maxSize - minSize) + minSize;
     
-    // Try up to 10 times to find a free position
-    // Generate size first - more consistent bubble sizes for better gameplay
-      // Generate random x position (5-95% to keep bubbles fully visible)
+    // Calculate bubble width in grid cells
     const bubbleWidthInCells = Math.ceil((size / (window.innerWidth * 0.8)) * GRID_COLS);
     const halfBubbleWidth = Math.floor(bubbleWidthInCells / 2);
-      const x = 5 + Math.random() * 90;
+    
     // First, analyze which sections of the grid have fewer bubbles
     const sectionBubbleCounts = [];
     const sectionWidth = Math.ceil(GRID_COLS / 4); // Divide into 4 sections
@@ -171,45 +169,24 @@ const BubblePop = ({ onBack }) => {
       const immediate = occupiedPositionsRef.current[safeGridX].filter(b => b.y > 90);
       
       if (immediate.length < 1) {
+        return { x, size };
+      }
+    }
+    
     // If all attempts failed, just return a random position anyway
     return { 
       x: 5 + Math.random() * 90,
       size: Math.random() * (maxSize - minSize) + minSize 
     };
-    }
-  }
+  };
+
+  // Continuously generate new bubbles
+  useEffect(() => {
     if (gameActive && bubbles.length < Math.min(Math.max(10, level + 9), 15)) {
       const timer = setInterval(() => { 
         if (gameActive && !gameOver) {
           const num = Math.floor(Math.random() * 100) + 1;
           const { x, size } = findFreePosition(40, 60);
-  // Continuously generate new bubbles at a rate appropriate for the level
-          const newBubble = {
-            id: Date.now() + Math.random(),
-            isOdd: num % 2 !== 0,
-            x: x, // Position from findFreePosition
-            y: 100,
-          for (let i = Math.max(0, safeGridX - halfBubbleWidth); 
-               i <= Math.min(GRID_COLS - 1, safeGridX + halfBubbleWidth); i++) {
-            occupiedPositionsRef.current[i].push({
-              id: Date.now() + Math.random(),
-              y: 100, // Bottom of container
-              size
-            });
-          }
-            size, // Use the size from findFreePosition
-            speed: 2 + Math.random() * (level * 0.5),
-          setBubbles(prev => [...prev, newBubble]);
-        }
-      }, 500); // Generate a new bubble every 0.5 seconds
-
-      return () => clearInterval(timer);
-    }
-
-  // Continuously generate new bubbles
-  useEffect(() => {
-    if (gameActive && bubbles.length < Math.min(Math.max(10, level + 9), 15)) {
-      // Adjust generation speed based on level - higher levels = faster generation
       const generationSpeed = Math.max(300, 600 - (level * 30));
       
       const timer = setInterval(() => {
