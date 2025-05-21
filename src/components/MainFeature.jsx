@@ -3,11 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
 import BubblePop from './BubblePop';
-import BubblePop from './BubblePop';
 import BubbleGame from './BubbleGame';
 
 const BookIcon = getIcon('book');
-import BubblePop from './BubblePop';
 const CalculatorIcon = getIcon('calculator');
 const FlaskConicalIcon = getIcon('flask-conical');
 const GlobeIcon = getIcon('globe');
@@ -139,13 +137,12 @@ const subjects = [
   },
   {
       id: 'bubble-pop',
-      title: 'Bubble Pop: Odd & Even Numbers',
-      description: 'Pop bubbles with odd or even numbers based on the given rule!',
-      bgColor: 'bg-pink-100 dark:bg-pink-800',
-      textColor: 'text-pink-600 dark:text-pink-200',
-      icon: '🎮',
+      name: 'Bubble Pop: Odd & Even Numbers',
+      icon: 'gamepad',
+      color: 'bg-pink-100 dark:bg-pink-800 text-pink-600 dark:text-pink-200',
       isGame: true
-    {
+  },
+  {
       id: "bubblepop",
       name: "Bubble Pop: Odd & Even",
       description: "Tap to pop bubbles with odd or even numbers!",
@@ -154,17 +151,10 @@ const subjects = [
       background: "bg-gradient-to-br from-blue-400 to-purple-500",
       emoji: "🫧",
       isGame: true
-    },
-    }, {
-    id: 'bubble-game',
-    name: 'Odd & Even Bubbles',
-    icon: 'gamepad',
-    color: 'bg-pink-100 dark:bg-pink-800 text-pink-600 dark:text-pink-200',
-    isGame: true
   },
   {
-    id: 'bubble-pop',
-    name: 'Bubble Pop: Odd & Even Numbers',
+    id: 'bubble-game',
+    name: 'Odd & Even Bubbles',
     icon: 'gamepad',
     color: 'bg-pink-100 dark:bg-pink-800 text-pink-600 dark:text-pink-200',
     isGame: true
@@ -208,8 +198,7 @@ const MainFeature = ({ grade }) => {
       setPlayingBubbleGame(true);
       setPlayingBubblePop(true);
       return;
-
-
+    }
   };
 
   const handleBackToSubjects = () => {
@@ -354,7 +343,6 @@ const MainFeature = ({ grade }) => {
               </h2>
             </div>
 
-    return subject?.questions?.length || 0;
               {subjects.map((subject) => (
                 <motion.div
                   key={subject.id}
@@ -365,8 +353,6 @@ const MainFeature = ({ grade }) => {
                   onClick={() => handleSubjectSelect(subject)}
                 >
                   <div className="mb-4 p-3 bg-white/30 dark:bg-surface-800/30 rounded-full">
-    } else if (subject.id === "bubblepop") {
-      return <BubblePop onBack={() => setSelectedSubject(null)} />;
                     {getSubjectIcon(subject.icon)}
                   </div>
                   <h3 className="text-xl font-bold">{subject.name}</h3>
@@ -379,7 +365,6 @@ const MainFeature = ({ grade }) => {
               ))}
             </div>
           </motion.div>
-    if (currentSubject && !currentSubject.isGame) setCurrentQuestionIndex(0);
           <motion.div
             key="quiz-results"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -409,9 +394,6 @@ const MainFeature = ({ grade }) => {
                       delay: 0.5 + (i * 0.2),
                       duration: 0.5,
                       type: "spring"
-    if (currentSubject.id === 'bubble-pop') {
-      return <BubblePop onBack={handleBackToSubjects} />;
-    }
 
                     }}
                   >
