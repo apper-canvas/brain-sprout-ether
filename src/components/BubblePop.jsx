@@ -1,17 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
 
-// Import icons
+const CheckCircleIcon = getIcon('check-circle');
+const XCircleIcon = getIcon('x-circle');
 const ArrowLeftIcon = getIcon('arrow-left');
 const StarIcon = getIcon('star');
 const RefreshCwIcon = getIcon('refresh-cw');
 const InfoIcon = getIcon('info');
-const TimerIcon = getIcon('timer');
 
 const BubblePop = ({ onBack }) => {
-  // Game state
   const [gameActive, setGameActive] = useState(false);
   const [bubbles, setBubbles] = useState([]);
   const [score, setScore] = useState(0);
@@ -20,11 +19,11 @@ const BubblePop = ({ onBack }) => {
   const [gameOver, setGameOver] = useState(false);
   const [stars, setStars] = useState(0);
   const [showInstructions, setShowInstructions] = useState(true);
-  const [popRule, setPopRule] = useState("odd"); // "odd" or "even"
-  const gameAreaRef = useRef(null);
-  const animationRef = useRef(null);
-  
-  // Start game
+  const [currentRule, setCurrentRule] = useState('odd'); // 'odd' or 'even'
+  const [bubblesPopped, setBubblesPopped] = useState(0);
+  const [requiredPops, setRequiredPops] = useState(5);
+
+  // Initialize game
   const startGame = () => {
     setGameActive(true);
     setShowInstructions(false);
@@ -32,19 +31,24 @@ const BubblePop = ({ onBack }) => {
     setLevel(1);
     setLives(3);
     setGameOver(false);
-    setPopRule(Math.random() < 0.5 ? "odd" : "even");
+    setBubblesPopped(0);
+    setRequiredPops(5);
+    setCurrentRule(Math.random() > 0.5 ? 'odd' : 'even');
     generateBubbles();
-    toast.success(`Game started! Pop the ${popRule.toUpperCase()} numbers!`);
+    toast.success(`Game started! Pop the ${currentRule.toUpperCase()} numbers!`);
   };
-  
-  // Generate bubbles based on level
-  const generateBubbles = () => {
-    const count = Math.min(5 + level, 12); // Increase bubbles with level, max 12
-    const newBubbles = [];
+
+  // Generate random bubbles based on current level
+  const generateBubbles = useCallback(() => {
+    // Clear existing bubbles
+    setBubbles([]);
     
-    for (let i = 0; i < count; i++) {
-      // Generate more complex numbers as level increases
-      const maxNum = level <= 2 ? 20 : level <= 4 ? 50 : 100;
+    // Generate new bubbles
+    const newBubbles = [];
+    const numBubbles = Math.min(5 + level, 12); // More bubbles as level increases, max 12
+    
+    for (let i = 0; i < numBubbles; i++) {
+      const maxNum = Math.min(level * 20, 100); // Increase max number with level, capped at 100
       const num = Math.floor(Math.random() * maxNum) + 1;
       
       newBubbles.push({
@@ -52,61 +56,86 @@ const BubblePop = ({ onBack }) => {
         number: num,
         isOdd: num % 2 !== 0,
         x: Math.random() * 80 + 10, // % across screen
-        y: Math.random() * 80, // % from top
-        size: Math.random() * 20 + 40, // Size between 40-60px
-        popped: false,
-        speed: 1 + (level * 0.5) // Speed increases with level
+        y: 110 + Math.random() * 20, // Start below the visible area
+        size: Math.random() * 20 + 50, // Size between 50-70px
+        speed: 2 + Math.random() * (level * 0.5) // Speed increases with level
       });
     }
     
-    setBubbles(newBubbles);
-  };
-  
-  // Handle bubble click
-  const handleBubblePop = (bubbleId) => {
-    const bubble = bubbles.find(b => b.id === bubbleId);
-    if (!bubble || bubble.popped) return;
+    setBubbles(prev => [...prev, ...newBubbles]);
+  }, [level]);
+
+  // Continuously generate new bubbles
+  useEffect(() => {
+    if (gameActive && bubbles.length < 12) {
+      const timer = setTimeout(() => {
+        if (gameActive && !gameOver) {
+          const newBubble = {
+            id: Date.now(),
+            number: Math.floor(Math.random() * Math.min(level * 20, 100)) + 1,
+            isOdd: false, // Will be set properly below
+            x: Math.random() * 80 + 10,
+            y: 110 + Math.random() * 20,
+            size: Math.random() * 20 + 50,
+            speed: 2 + Math.random() * (level * 0.5)
+          };
+          newBubble.isOdd = newBubble.number % 2 !== 0;
+          
+          setBubbles(prev => [...prev, newBubble]);
+        }
+      }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
+      
+      return () => clearTimeout(timer);
+    }
+  }, [bubbles.length, gameActive, gameOver, level]);
+
+  // Handle bubble tap/click
+  const handleBubbleTap = (bubble) => {
+    if (!gameActive || gameOver) return;
     
-    const isCorrectPop = 
-      (popRule === "odd" && bubble.isOdd) || 
-      (popRule === "even" && !bubble.isOdd);
+    const isCorrect = 
+      (currentRule === 'odd' && bubble.isOdd) || 
+      (currentRule === 'even' && !bubble.isOdd);
     
-    // Update bubble state
-    setBubbles(prev => 
-      prev.map(b => 
-        b.id === bubbleId ? {...b, popped: true} : b
-      )
-    );
+    // Remove the bubble
+    setBubbles(prev => prev.filter(b => b.id !== bubble.id));
     
     // Handle scoring and feedback
-    if (isCorrectPop) {
+    if (isCorrect) {
       setScore(prev => prev + 10);
+      setBubblesPopped(prev => prev + 1);
+      
       toast.success(`Correct! ${bubble.number} is ${bubble.isOdd ? 'odd' : 'even'}!`, {
+        icon: <CheckCircleIcon className="text-green-500 w-5 h-5" />,
         autoClose: 1000
       });
     } else {
       setLives(prev => prev - 1);
-      toast.error(`Oops! ${bubble.number} is ${bubble.isOdd ? 'odd' : 'even'}, not ${popRule}!`, {
+      
+      toast.error(`Oops! ${bubble.number} is ${bubble.isOdd ? 'odd' : 'even'}!`, {
+        icon: <XCircleIcon className="text-red-500 w-5 h-5" />,
         autoClose: 1000
       });
     }
-    
-    // Check if all bubbles are popped
-    const remainingBubbles = bubbles.filter(b => !b.popped && b.id !== bubbleId).length;
-    if (remainingBubbles === 0) {
-      setTimeout(() => {
-        // Level up, possibly change the rule, and generate new bubbles
-        setLevel(prev => prev + 1);
-        setPopRule(Math.random() < 0.5 ? "odd" : "even");
-        generateBubbles();
-        toast.info(`Level ${level + 1}! Now pop ${popRule.toUpperCase()} numbers!`, {
-          autoClose: 1500,
-          icon: <InfoIcon className="text-blue-500 w-5 h-5" />
-        });
-      }, 1000);
-    }
   };
-  
+
+  // Check for level progression
+  useEffect(() => {
+    if (bubblesPopped >= requiredPops && gameActive) {
+      // Level up
+      setLevel(prev => prev + 1);
+      setBubblesPopped(0);
+      setRequiredPops(prev => Math.min(prev + 2, 15)); // More pops required as level increases, max 15
+      
+      // Switch rule
+      setCurrentRule(prev => prev === 'odd' ? 'even' : 'odd');
+      
+      toast.info(`Level ${level + 1}! Now pop ${currentRule === 'odd' ? 'EVEN' : 'ODD'} numbers!`, {
+        autoClose: 1500
+      });
+    }
+  }, [bubblesPopped, requiredPops, gameActive, level, currentRule]);
+
   // Check for game over condition
   useEffect(() => {
     if (lives <= 0 && gameActive) {
@@ -120,16 +149,7 @@ const BubblePop = ({ onBack }) => {
       else setStars(0);
     }
   }, [lives, gameActive, score]);
-  
-  // Clean up animation frame on unmount
-  useEffect(() => {
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, []);
-  
+
   return (
     <div className="max-w-4xl mx-auto">
       {/* Header */}
@@ -143,16 +163,16 @@ const BubblePop = ({ onBack }) => {
           <ArrowLeftIcon className="w-5 h-5" />
         </motion.button>
         
-        <div className="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-800 text-pink-600 dark:text-pink-200 flex items-center justify-center mr-3">
+        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-200 flex items-center justify-center mr-3">
           <span className="text-xl">🎮</span>
         </div>
         
         <h2 className="text-xl md:text-2xl font-bold">
-          Bubble Pop: Odd & Even Numbers
+          Bubble Pop - Odd and Even Numbers
         </h2>
       </div>
       
-      {/* Instructions */}
+      {/* Instructions Modal */}
       <AnimatePresence>
         {showInstructions && (
           <motion.div
@@ -164,20 +184,20 @@ const BubblePop = ({ onBack }) => {
             <h3 className="text-2xl font-bold mb-4">How to Play</h3>
             <div className="space-y-4 text-left mb-6">
               <div className="flex items-start">
-                <span className="bg-pink-100 dark:bg-pink-800 rounded-full w-8 h-8 flex items-center justify-center text-pink-600 dark:text-pink-200 mr-3">1</span>
-                <p>Each round will ask you to pop either ODD or EVEN number bubbles</p>
+                <span className="bg-blue-100 dark:bg-blue-800 rounded-full w-8 h-8 flex items-center justify-center text-blue-600 dark:text-blue-200 mr-3">1</span>
+                <p>Bubbles with numbers will float upward on the screen</p>
               </div>
               <div className="flex items-start">
-                <span className="bg-pink-100 dark:bg-pink-800 rounded-full w-8 h-8 flex items-center justify-center text-pink-600 dark:text-pink-200 mr-3">2</span>
-                <p>Click or tap only the bubbles that match the rule</p>
+                <span className="bg-blue-100 dark:bg-blue-800 rounded-full w-8 h-8 flex items-center justify-center text-blue-600 dark:text-blue-200 mr-3">2</span>
+                <p>Tap/click ONLY on bubbles that match the rule (odd or even numbers)</p>
               </div>
               <div className="flex items-start">
-                <span className="bg-pink-100 dark:bg-pink-800 rounded-full w-8 h-8 flex items-center justify-center text-pink-600 dark:text-pink-200 mr-3">3</span>
-                <p>The game gets faster with each level!</p>
+                <span className="bg-blue-100 dark:bg-blue-800 rounded-full w-8 h-8 flex items-center justify-center text-blue-600 dark:text-blue-200 mr-3">3</span>
+                <p>Get points for correct answers and try to reach the highest level!</p>
               </div>
               <div className="flex items-start">
                 <InfoIcon className="text-blue-500 w-6 h-6 mr-3 mt-1" />
-                <p><strong>Remember:</strong> Odd numbers cannot be divided equally by 2 (like 1, 3, 5, 7...) while even numbers can (like 2, 4, 6, 8...)</p>
+                <p><strong>Remember:</strong> Odd numbers cannot be divided equally by 2 (like 1, 3, 5, 7, 9...) while even numbers can (like 2, 4, 6, 8, 10...)</p>
               </div>
             </div>
             
@@ -195,60 +215,53 @@ const BubblePop = ({ onBack }) => {
       
       {/* Game Area */}
       {gameActive && (
-        <div className="card p-6 mb-6 relative overflow-hidden" ref={gameAreaRef}>
+        <div className="card p-6 mb-6 relative overflow-hidden min-h-[500px]">
           {/* Game stats */}
           <div className="flex justify-between items-center mb-4 relative z-10">
-            <div className="flex space-x-4">
-              <div className="bg-primary-light/20 dark:bg-primary-dark/30 px-3 py-1 rounded-full">
+            <div className="flex flex-col md:flex-row md:space-x-4">
+              <div className="bg-primary-light/20 dark:bg-primary-dark/30 px-3 py-1 rounded-full mb-2 md:mb-0">
                 Level: {level}
               </div>
               <div className="bg-secondary-light/20 dark:bg-secondary-dark/30 px-3 py-1 rounded-full">
                 Score: {score}
               </div>
             </div>
-            <div className="flex items-center gap-1">
-              {[...Array(lives)].map((_, i) => (
-                <div key={i} className="w-6 h-6 text-red-500">❤️</div>
-              ))}
+            <div className="flex flex-col items-end">
+              <div className="font-bold text-xl mb-1">
+                Pop {currentRule.toUpperCase()} Numbers!
+              </div>
+              <div className="flex items-center gap-1">
+                {[...Array(lives)].map((_, i) => (
+                  <div key={i} className="w-6 h-6 text-red-500">❤️</div>
+                ))}
+              </div>
             </div>
           </div>
           
-          {/* Current rule */}
-          <div className="text-center mb-4 bg-pink-100 dark:bg-pink-800/40 p-3 rounded-lg font-bold text-xl">
-            Pop the {popRule.toUpperCase()} numbers!
+          {/* Progress indicator */}
+          <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full mb-4">
+            <div 
+              className="h-full bg-blue-500 rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${(bubblesPopped / requiredPops) * 100}%` }}
+            ></div>
           </div>
           
-          {/* Bubbles play area */}
+          {/* Bubble play area */}
           <div className="relative h-[400px] bg-gradient-to-b from-blue-50/50 to-purple-50/50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg overflow-hidden">
             <AnimatePresence>
               {bubbles.map(bubble => (
-                !bubble.popped && (
-                  <motion.div
-                    key={bubble.id}
-                    initial={{ 
-                      x: `${bubble.x}%`, 
-                      y: `${bubble.y}%`, 
-                      scale: 0.5, 
-                      opacity: 0.5 
-                    }}
-                    animate={{ 
-                      y: ['0%', '100%'],
-                      x: [`${bubble.x}%`, `${bubble.x + (Math.random() * 40 - 20)}%`],
-                      scale: 1, 
-                      opacity: 1,
-                      transition: { 
-                        y: { duration: 12 / bubble.speed, repeat: 0, ease: "linear" },
-                        x: { duration: 8 / bubble.speed, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }
-                      }
-                    }}
-                    exit={{ scale: 1.5, opacity: 0 }}
-                    onClick={() => handleBubblePop(bubble.id)}
-                    className="bubble absolute cursor-pointer select-none"
-                    style={{ width: `${bubble.size}px`, height: `${bubble.size}px` }}
-                  >
-                    <span className="text-xl font-bold">{bubble.number}</span>
-                  </motion.div>
-                )
+                <motion.div
+                  key={bubble.id}
+                  initial={{ x: `${bubble.x}%`, y: `${bubble.y}%`, opacity: 0.7 }}
+                  animate={{ y: [null, '-120%'], opacity: [0.7, 1, 0.7] }}
+                  exit={{ scale: 1.5, opacity: 0 }}
+                  transition={{ y: { duration: 8 / bubble.speed, ease: "linear" }, opacity: { duration: 8 / bubble.speed, times: [0, 0.5, 1], ease: "linear" } }}
+                  onClick={() => handleBubbleTap(bubble)}
+                  className="bubble absolute cursor-pointer"
+                  style={{ width: `${bubble.size}px`, height: `${bubble.size}px` }}
+                >
+                  <span className="text-xl font-bold">{bubble.number}</span>
+                </motion.div>
               ))}
             </AnimatePresence>
           </div>

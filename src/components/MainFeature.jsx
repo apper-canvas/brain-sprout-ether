@@ -7,6 +7,7 @@ import BubblePop from './BubblePop';
 import BubbleGame from './BubbleGame';
 
 const BookIcon = getIcon('book');
+import BubblePop from './BubblePop';
 const CalculatorIcon = getIcon('calculator');
 const FlaskConicalIcon = getIcon('flask-conical');
 const GlobeIcon = getIcon('globe');
@@ -144,6 +145,16 @@ const subjects = [
       textColor: 'text-pink-600 dark:text-pink-200',
       icon: '🎮',
       isGame: true
+    {
+      id: "bubblepop",
+      name: "Bubble Pop: Odd & Even",
+      description: "Tap to pop bubbles with odd or even numbers!",
+      subject: "maths",
+      difficulty: "easy",
+      background: "bg-gradient-to-br from-blue-400 to-purple-500",
+      emoji: "🫧",
+      isGame: true
+    },
     }, {
     id: 'bubble-game',
     name: 'Odd & Even Bubbles',
@@ -354,6 +365,8 @@ const MainFeature = ({ grade }) => {
                   onClick={() => handleSubjectSelect(subject)}
                 >
                   <div className="mb-4 p-3 bg-white/30 dark:bg-surface-800/30 rounded-full">
+    } else if (subject.id === "bubblepop") {
+      return <BubblePop onBack={() => setSelectedSubject(null)} />;
                     {getSubjectIcon(subject.icon)}
                   </div>
                   <h3 className="text-xl font-bold">{subject.name}</h3>

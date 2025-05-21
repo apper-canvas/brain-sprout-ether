@@ -355,6 +355,59 @@
   }
 
   /* Bubble Pop Game Styles */
+  /* Bubble pop animation */
+  @keyframes bubble-pop {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0.7;
+    }
+    100% {
+      transform: scale(0);
+      opacity: 0;
+    }
+  }
+  
+  .bubble-pop {
+    animation: bubble-pop 0.3s ease-out forwards;
+  }
+  
+  /* Bubble float animation */
+  @keyframes bubble-float {
+    0% {
+      transform: translateY(0) translateX(0);
+    }
+    25% {
+      transform: translateY(-5px) translateX(5px);
+    }
+    50% {
+      transform: translateY(-10px) translateX(0);
+    }
+    75% {
+      transform: translateY(-5px) translateX(-5px);
+    }
+    100% {
+      transform: translateY(0) translateX(0);
+    }
+  }
+  
+  /* Special effect for odd and even bubbles */
+  .bubble-odd {
+    background-color: rgba(255, 99, 132, 0.7);
+    border: 2px solid rgba(255, 99, 132, 0.9);
+    color: white;
+  }
+  
+  .bubble-even {
+    background-color: rgba(54, 162, 235, 0.7);
+    border: 2px solid rgba(54, 162, 235, 0.9);
+    color: white;
+  }
+
+  /* Bubble Pop Game Styles */
   .bubble {
     background: radial-gradient(
       circle at 30% 30%,
