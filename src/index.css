@@ -492,4 +492,15 @@
     border: 2px solid rgba(54, 162, 235, 0.9);
     color: white;
   }
+
+/* Game title styling */
+.game-title {
+  color: #1e40af;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15), 0 0 10px rgba(59, 130, 246, 0.5);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  display: inline-block;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
 }

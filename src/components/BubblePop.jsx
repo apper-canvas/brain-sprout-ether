@@ -55,8 +55,8 @@ const BubblePop = ({ onBack }) => {
         id: Date.now() + i,
         number: num,
         isOdd: num % 2 !== 0,
-        x: Math.random() * 80 + 10, // % across screen
-        y: 110 + Math.random() * 20, // Start below the visible area
+        x: Math.random() * 90 + 5, // % across full screen width
+        y: 110 + Math.random() * 10, // Start below the visible area
         size: Math.random() * 20 + 50, // Size between 50-70px
         speed: 2 + Math.random() * (level * 0.5) // Speed increases with level
       });
@@ -74,7 +74,7 @@ const BubblePop = ({ onBack }) => {
             id: Date.now(),
             number: Math.floor(Math.random() * Math.min(level * 20, 100)) + 1,
             isOdd: false, // Will be set properly below
-            x: Math.random() * 80 + 10,
+            x: Math.random() * 90 + 5, // Full screen width
             y: 110 + Math.random() * 20,
             size: Math.random() * 20 + 50,
             speed: 2 + Math.random() * (level * 0.5)
@@ -226,15 +226,16 @@ const BubblePop = ({ onBack }) => {
                 Score: {score}
               </div>
             </div>
-            <div className="flex flex-col items-end">
-              <div className="font-bold text-xl mb-1">
-                Pop {currentRule.toUpperCase()} Numbers!
-              </div>
+            <div className="flex flex-col items-end"> 
               <div className="flex items-center gap-1">
                 {[...Array(lives)].map((_, i) => (
                   <div key={i} className="w-6 h-6 text-red-500">❤️</div>
                 ))}
               </div>
+            </div>
+          </div>
+          
+          {/* Centered game title */}
             </div>
           </div>
           
@@ -248,12 +249,18 @@ const BubblePop = ({ onBack }) => {
           
           {/* Bubble play area */}
           <div className="relative h-[400px] bg-gradient-to-b from-blue-50/50 to-purple-50/50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg overflow-hidden">
+            {/* Centered game title */}
+            <div className="absolute top-3 left-0 right-0 z-10 text-center">
+              <div className="game-title text-2xl md:text-3xl font-extrabold">
+                POP {currentRule.toUpperCase()} NUMBERS!
+              </div>
+            </div>
             <AnimatePresence>
               {bubbles.map(bubble => (
                 <motion.div
                   key={bubble.id}
                   initial={{ x: `${bubble.x}%`, y: `${bubble.y}%`, opacity: 0.7 }}
-                  animate={{ y: [null, '-120%'], opacity: [0.7, 1, 0.7] }}
+                  animate={{ y: [null, '-120%'], x: [`${bubble.x}%`, `${bubble.x - 5 + Math.random() * 10}%`], opacity: [0.7, 1, 0.7] }}
                   exit={{ scale: 1.5, opacity: 0 }}
                   transition={{ y: { duration: 8 / bubble.speed, ease: "linear" }, opacity: { duration: 8 / bubble.speed, times: [0, 0.5, 1], ease: "linear" } }}
                   onClick={() => handleBubbleTap(bubble)}
