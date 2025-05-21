@@ -42,27 +42,11 @@ const BubblePop = ({ onBack }) => {
   const generateBubbles = useCallback(() => {
     // Clear existing bubbles
     setBubbles([]);
-    
-    // Generate new bubbles
-    const newBubbles = [];
-    const numBubbles = Math.min(Math.max(10, level + 9), 15); // 10-15 bubbles based on level
-    
-    for (let i = 0; i < numBubbles; i++) {
-      // Generate a random number between 1 and 100 (inclusive) regardless of level
-      const num = Math.floor(Math.random() * 100) + 1;
-      
-      newBubbles.push({
-        id: Date.now() + i,
-        number: num,
-        isOdd: num % 2 !== 0,
-        x: 5 + (i * (90 / numBubbles)) + (Math.random() * (90 / numBubbles) * 0.8), // Even distribution with some randomness
-        y: 100, // Start at the bottom edge of the game screen
-        size: Math.random() * 20 + 50, // Size between 50-70px (diameter)
-        speed: 2 + Math.random() * (level * 0.5), // Speed increases with level
-      });
-    }
-    
-    setBubbles(prev => [...prev, ...newBubbles]);
+
+    // We'll create bubbles one by one with random timing
+    // instead of generating them all at once
+    // The timer in useEffect will handle creating the bubbles
+    // This creates a more dynamic appearance of bubbles
   }, [level]);
 
   // Continuously generate new bubbles
@@ -70,20 +54,23 @@ const BubblePop = ({ onBack }) => {
     if (gameActive && bubbles.length < Math.min(Math.max(10, level + 9), 15)) {
       const timer = setTimeout(() => {
         if (gameActive && !gameOver) {
+          // Generate random number between 1 and 100
+          const num = Math.floor(Math.random() * 100) + 1;
+          // Generate random x position along the bottom of the screen
+          const randomXPos = 5 + Math.random() * 90;
+          
           const newBubble = {
             id: Date.now(),
-            number: Math.floor(Math.random() * 100) + 1,
-            isOdd: false, // Will be set properly below
-            x: Math.random() * 100, // Full screen width (0-100%)
+            number: num,
+            isOdd: num % 2 !== 0,
+            x: randomXPos, // Random position along the bottom
             y: 100, // Start at the bottom edge of the game screen
             size: Math.random() * 20 + 50, // Size between 50-70px
             speed: 2 + Math.random() * (level * 0.5),
           };
-          newBubble.isOdd = newBubble.number % 2 !== 0;
-          
           setBubbles(prev => [...prev, newBubble]);
         }
-      }, 800 + Math.random() * 800); // Random delay between 0.8-1.6 seconds
+      }, 600 + Math.random() * 1200); // Random delay between 0.6-1.8 seconds for one-by-one appearance
       
       return () => clearTimeout(timer);
     }
