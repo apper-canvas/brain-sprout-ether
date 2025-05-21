@@ -490,12 +490,12 @@ const BubblePop = ({ onBack }) => {
                   initial={{ 
                     x: `${bubble.x}%`,
                     y: '100%',
-                    opacity: 0.8
+                    opacity: 0.9
                   }}
                   animate={{
                     y: '-100%', // Move straight up to the top of the screen
                     x: `${bubble.x}%`, // Keep x position fixed for straight path
-                    opacity: [0.8, 1, 0.8] // Keep the opacity animation
+                    opacity: [0.9, 1, 0.8] // Keep the opacity animation
                   }}
                   exit={{ 
                     opacity: 0, 
@@ -503,8 +503,8 @@ const BubblePop = ({ onBack }) => {
                     transition: { duration: 0.3 }
                   }}
                   transition={{ 
-                    y: { duration: 10, ease: "linear" }, // Exactly 10 seconds for upward movement
-                    opacity: { duration: 10, times: [0, 0.5, 1], ease: "linear" } // Match opacity animation duration
+                    y: { duration: 10, ease: "linear" }, // Fixed 10 seconds for straight upward movement
+                    opacity: { duration: 10, times: [0, 0.5, 1], ease: "linear" } // Matched opacity animation duration
                   }}
                   onClick={() => handleBubbleTap(bubble)} 
                   onAnimationComplete={(definition) => {
