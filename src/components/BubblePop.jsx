@@ -45,7 +45,7 @@ const BubblePop = ({ onBack }) => {
     
     // Generate new bubbles
     const newBubbles = [];
-    const numBubbles = Math.min(8 + level, 15); // More bubbles as level increases, max 15
+    const numBubbles = Math.min(Math.max(10, level + 9), 15); // 10-15 bubbles based on level
     
     for (let i = 0; i < numBubbles; i++) {
       // Generate a random number between 1 and 100 (inclusive) regardless of level
@@ -55,7 +55,7 @@ const BubblePop = ({ onBack }) => {
         id: Date.now() + i,
         number: num,
         isOdd: num % 2 !== 0,
-        x: Math.random() * 90 + 5, // Full screen width, but avoid edges (5-95%)
+        x: 5 + (i * (90 / numBubbles)) + (Math.random() * (90 / numBubbles) * 0.8), // Even distribution with some randomness
         y: 100, // Start at the bottom edge of the game screen
         size: Math.random() * 20 + 50, // Size between 50-70px (diameter)
         speed: 2 + Math.random() * (level * 0.5), // Speed increases with level
@@ -67,7 +67,7 @@ const BubblePop = ({ onBack }) => {
 
   // Continuously generate new bubbles
   useEffect(() => {
-    if (gameActive && bubbles.length < 15) {
+    if (gameActive && bubbles.length < Math.min(Math.max(10, level + 9), 15)) {
       const timer = setTimeout(() => {
         if (gameActive && !gameOver) {
           const newBubble = {
