@@ -45,7 +45,7 @@ const BubblePop = ({ onBack }) => {
 
     // We'll create bubbles one by one with random timing
     // instead of generating them all at once
-    // The timer in useEffect will handle creating the bubbles
+          left: Math.random() * 90, // % from left - full width distribution
     // This creates a more dynamic appearance of bubbles
   }, [level]);
 
