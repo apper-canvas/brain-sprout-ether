@@ -767,30 +767,17 @@ const MainFeature = ({ grade }) => {
                 {selectedSubject.id === 'math' && (
                   <>
                     <div className="lava-background" 
-                         style={{'--lava-height': `${((30 - timeLeft) / 30) * 100}%`}}></div>
+                         style={{'--lava-height': `${((30 - timeLeft) / 30) * 100}%`}}>
+                    </div>
                     <div className="lava-bubble-1" style={{
                       '--bubble-delay': '0.7s',
                       '--bubble-size': '12px', 
                       '--bubble-left': '25%',
                       '--bubble-duration': '4s',
                       opacity: timeLeft < 20 ? 1 : 0
-                    }}></div>
+                    }}>
+                    </div>
                   </>
-                )}
-
-                <div className="flex items-center space-x-3">
-                  {selectedSubject.id === 'math' && (
-                    <>
-                      <div className="lava-background" 
-                           style={{'--lava-height': `${((30 - timeLeft) / 30) * 100}%`}}></div>
-                      <div className="lava-bubble-1" style={{
-                        '--bubble-delay': '0.7s',
-                        '--bubble-size': '12px', 
-                        '--bubble-left': '25%',
-                        '--bubble-duration': '4s',
-                        opacity: timeLeft < 20 ? 1 : 0
-                      }}></div>
-                    </>
                 )}
 
                 <div className="flex items-center space-x-3">
