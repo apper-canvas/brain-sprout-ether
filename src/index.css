@@ -378,19 +378,20 @@
   /* Bubble float animation - modified for bottom to top movement */
 @keyframes bubble-float-upward {
     0% {
-      transform: translateY(0) translateX(0);
+      transform: translateY(0);
     }
     25% {
-      transform: translateY(-150%) translateX(5px);
+      transform: translateY(-175%) translateX(10px);
     }
     50% {
-      transform: translateY(-300%) translateX(-5px);
+      transform: translateY(-350%) translateX(-10px);
     }
     75% {
-      transform: translateY(-450%) translateX(5px);
+      transform: translateY(-525%) translateX(10px);
     }
     100% {
-      transform: translateY(-600%) translateX(0);
+      transform: translateY(-700%);
+      opacity: 0;
     }
   }
   
@@ -539,6 +540,7 @@
 
 .dark .bubble-zone {
   background: linear-gradient(to bottom, rgba(30, 50, 100, 0.3), rgba(40, 60, 120, 0.3), rgba(50, 70, 140, 0.3));
+  border: 2px solid rgba(100, 140, 200, 0.5);
 }
 
 /* Timer display styles */

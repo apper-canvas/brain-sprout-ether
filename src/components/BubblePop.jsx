@@ -25,8 +25,9 @@ const BubblePop = ({ onBack }) => {
   const [timeRemaining, setTimeRemaining] = useState(120); // 2 minutes in seconds
   const [requiredPops, setRequiredPops] = useState(5);
   const bubblesToRemoveRef = useRef(new Set());
-  // Track occupied positions to prevent overlap
-  const occupiedPositionsRef = useRef({});
+  // Create grid to track occupied positions - divide the playzone into a 10x10 grid
+  const GRID_COLS = 20; // 20 columns for more granular positioning
+  const occupiedPositionsRef = useRef(Array(GRID_COLS).fill().map(() => []));
   const playAreaRef = useRef(null);
 
   // Initialize game
@@ -50,7 +51,7 @@ const BubblePop = ({ onBack }) => {
     // Clear existing bubbles
     setBubbles([]);
     // Reset occupied positions
-    occupiedPositionsRef.current = {};
+    occupiedPositionsRef.current = Array(GRID_COLS).fill().map(() => []);
     
     // Create a starter set of bubbles (will be continued by the useEffect)
     const initialBubbles = Array.from({ length: Math.min(5, level + 2) }, () => {
@@ -58,37 +59,46 @@ const BubblePop = ({ onBack }) => {
       const num = Math.floor(Math.random() * 100) + 1;
       
       // Find a free position for the bubble
-      const { x, size } = findFreePosition(40, 70); // Size between 40-70px
+      // Distribute bubbles evenly along the width of the container with some randomness
+      // Use larger bubbles for better visibility
+      const size = Math.floor(Math.random() * 25) + 45; // 45-70px
       
-      // Calculate x position as percentage
-      const randomXPos = x;
+      // Position bubbles evenly across the full width
+      // Add an offset to ensure bubbles start at different horizontal positions
+      const section = GRID_COLS / Math.min(5, level + 2); // Divide container into sections
+      const sectionIndex = initialBubbles.length;
+      const baseX = (sectionIndex * section) + (Math.random() * section * 0.6) - (section * 0.3);
+      const position = Math.max(5, Math.min(95, (baseX / GRID_COLS) * 100));
       
-      // Calculate a random speed based on level
-      const speed = 2 + Math.random() * (level * 0.5);
+      // Note: positions are now percentages (0-100) of container width
+      const x = position;
       
-      // Reserve this position
-      const gridX = Math.floor(x / 10); // Convert to grid cell (0-10)
-      if (!occupiedPositionsRef.current[gridX]) {
-        occupiedPositionsRef.current[gridX] = [];
+      // Mark this position as occupied
+      const gridX = Math.floor(x / (100 / GRID_COLS));
+      const safeGridX = Math.max(0, Math.min(GRID_COLS - 1, gridX));
+      
+      // Calculate bubble width in grid cells
+      const bubbleWidthInCells = Math.ceil((size / (window.innerWidth * 0.8)) * GRID_COLS);
+      const halfBubbleWidth = Math.floor(bubbleWidthInCells / 2);
+      
+      // Reserve space for this bubble in the grid (mark adjacent cells as occupied too)
+      for (let i = Math.max(0, safeGridX - halfBubbleWidth); 
+           i <= Math.min(GRID_COLS - 1, safeGridX + halfBubbleWidth); i++) {
+        occupiedPositionsRef.current[i].push({
+          id: Date.now() + Math.random(),
+          y: 100, // Bottom of container
+          size
+        });
       }
       
-      // Add the bubble to occupied positions with its size
-      const bubbleWidth = size / 100; // Convert to percentage units (assuming container is 100%)
-      const startGrid = Math.max(0, Math.floor((x - bubbleWidth/2) / 10));
-      const endGrid = Math.min(9, Math.floor((x + bubbleWidth/2) / 10));
+      // Calculate a speed based on level with less randomness for more predictable movement
+      const speed = 2 + (level * 0.3) + (Math.random() * 0.5);
       
-      for (let i = startGrid; i <= endGrid; i++) {
-        occupiedPositionsRef.current[i].push({ id: Date.now() + Math.random(), y: 100 });
-      }
-
       return {
         id: Date.now() + Math.random() + num,
         number: num,
         isOdd: num % 2 !== 0,
-        x: randomXPos, // Random position along the width
-        y: 100, // Start at the bottom edge of the game screen
-        size, // Use the size from findFreePosition
-        speed: 1 + Math.random() * (level * 0.3), // Slightly slower speed for better visibility
+        x, y: 100, size, speed
       };
     });
     setBubbles(initialBubbles);
@@ -100,37 +110,67 @@ const BubblePop = ({ onBack }) => {
     const size = Math.random() * (maxSize - minSize) + minSize;
     
     // Try up to 10 times to find a free position
-    for (let attempt = 0; attempt < 10; attempt++) {
+    // Generate size first - more consistent bubble sizes for better gameplay
       // Generate random x position (5-95% to keep bubbles fully visible)
+    const bubbleWidthInCells = Math.ceil((size / (window.innerWidth * 0.8)) * GRID_COLS);
+    const halfBubbleWidth = Math.floor(bubbleWidthInCells / 2);
       const x = 5 + Math.random() * 90;
+    // First, analyze which sections of the grid have fewer bubbles
+    const sectionBubbleCounts = [];
+    const sectionWidth = Math.ceil(GRID_COLS / 4); // Divide into 4 sections
+    
+    for (let i = 0; i < 4; i++) {
+      let count = 0;
+      for (let j = i * sectionWidth; j < (i + 1) * sectionWidth && j < GRID_COLS; j++) {
+        count += occupiedPositionsRef.current[j].filter(b => b.y > 70).length;
+      }
+      sectionBubbleCounts.push({ section: i, count });
+    }
+    
+    // Sort sections by bubble count, prefer sections with fewer bubbles
+    sectionBubbleCounts.sort((a, b) => a.count - b.count);
+    
+    // Try finding a position in each section, starting with least populated
+    for (const { section } of sectionBubbleCounts) {
+      const sectionStart = section * sectionWidth;
+      const sectionEnd = Math.min(GRID_COLS, (section + 1) * sectionWidth);
       
-      // Check if this position is free
-      const gridX = Math.floor(x / 10);
-      const bubbleWidth = size / 100; // Size as percentage of container
-      
-      // Check surrounding grid cells too based on bubble size
-      const startGrid = Math.max(0, Math.floor((x - bubbleWidth) / 10));
-      const endGrid = Math.min(9, Math.floor((x + bubbleWidth/2) / 10));
-      
-      let positionIsFree = true;
-      for (let i = startGrid; i <= endGrid; i++) {
-        if (occupiedPositionsRef.current[i] && occupiedPositionsRef.current[i].length > 0) {
-          // Check if any bubbles are too close to the bottom
-          const bottomBubbles = occupiedPositionsRef.current[i].filter(
-            b => b.y > 80 // Only check bubbles in the bottom 20% of the container
-          );
+      // Try multiple positions within this section
+      for (let attempt = 0; attempt < 5; attempt++) {
+        // Generate a position within this section
+        const gridX = sectionStart + Math.floor(Math.random() * (sectionEnd - sectionStart));
+        const x = ((gridX + 0.5) / GRID_COLS) * 100; // Convert to percentage
+        
+        // Check if this position and surrounding cells are free
+        let positionIsFree = true;
+        
+        // Check surrounding grid cells based on bubble size
+        for (let i = Math.max(0, gridX - halfBubbleWidth); 
+             i <= Math.min(GRID_COLS - 1, gridX + halfBubbleWidth); i++) {
+          // Only check for bubbles near the bottom area
+          const bottomBubbles = occupiedPositionsRef.current[i].filter(b => b.y > 80);
           if (bottomBubbles.length > 0) {
             positionIsFree = false;
             break;
           }
         }
-      }
-      
-      if (positionIsFree) {
-        return { x, size };
+        
+        if (positionIsFree) {
+          return { x, size };
+        }
       }
     }
     
+    // If all attempts with preferred sections failed, try completely random positions
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const x = 5 + Math.random() * 90; // Keep within 5-95% range
+      const gridX = Math.floor(x / (100 / GRID_COLS));
+      const safeGridX = Math.max(0, Math.min(GRID_COLS - 1, gridX));
+      
+      // Less strict check - just make sure immediate position isn't too crowded
+      const immediate = occupiedPositionsRef.current[safeGridX].filter(b => b.y > 90);
+      
+      if (immediate.length < 1) {
     // If all attempts failed, just return a random position anyway
     return { 
       x: 5 + Math.random() * 90,
@@ -145,16 +185,38 @@ const BubblePop = ({ onBack }) => {
         if (gameActive && !gameOver) {
           const num = Math.floor(Math.random() * 100) + 1;
           const { x, size } = findFreePosition(40, 60);
-
+  // Continuously generate new bubbles at a rate appropriate for the level
           const newBubble = {
             id: Date.now(),
-            number: num,
+      // Adjust generation speed based on level - higher levels = faster generation
+      const generationSpeed = Math.max(300, 600 - (level * 30));
+      
+      const timer = setInterval(() => {
             isOdd: num % 2 !== 0,
             x: x, // Position from findFreePosition
-            y: 100, // Start at the bottom edge of the game screen
+          const { x, size } = findFreePosition(45, 65); // Slightly larger bubbles
+          
+          // Mark this position as occupied in the grid
+          const gridX = Math.floor(x / (100 / GRID_COLS));
+          const safeGridX = Math.max(0, Math.min(GRID_COLS - 1, gridX));
+          
+          // Calculate bubble width in grid cells for better collision prevention
+          const bubbleWidthInCells = Math.ceil((size / (window.innerWidth * 0.8)) * GRID_COLS);
+          const halfBubbleWidth = Math.floor(bubbleWidthInCells / 2);
+          
+          // Mark adjacent grid cells as occupied
+          for (let i = Math.max(0, safeGridX - halfBubbleWidth); 
+               i <= Math.min(GRID_COLS - 1, safeGridX + halfBubbleWidth); i++) {
+            occupiedPositionsRef.current[i].push({
+              id: Date.now() + Math.random(),
+              y: 100, // Bottom of container
+              size
+            });
+          }
             size, // Use the size from findFreePosition
+          // Add the new bubble to the game
             speed: 2 + Math.random() * (level * 0.5),
-          };
+            id: Date.now() + Math.random(),
           setBubbles(prev => [...prev, newBubble]);
         }
       }, 500); // Generate a new bubble every 0.5 seconds
@@ -164,7 +226,7 @@ const BubblePop = ({ onBack }) => {
   }, [bubbles.length, gameActive, gameOver, level]);
 
   // Handle bubbles that need to be removed after animation completes
-  useEffect(() => {
+      }, generationSpeed);
     if (bubblesToRemoveRef.current.size > 0) {
       const bubblesIdsToRemove = Array.from(bubblesToRemoveRef.current);
       setBubbles(prev => prev.filter(b => !bubblesIdsToRemove.includes(b.id)));
@@ -175,10 +237,18 @@ const BubblePop = ({ onBack }) => {
       // Also clean up old entries in occupiedPositionsRef
       // This helps prevent memory leaks and keeps collision detection accurate
       Object.keys(occupiedPositionsRef.current).forEach(gridX => {
-        occupiedPositionsRef.current[gridX] = occupiedPositionsRef.current[gridX].filter(b => b.y > -20);
+
       });
     }
   }, [bubblesToRemoveRef.current.size]);
+      // Update grid structure - calculate more accurately when bubbles leave the screen
+      // This cleans up positions for better collision detection
+      for (let col = 0; col < GRID_COLS; col++) {
+        // Filter out bubbles that have moved significantly up the screen
+        // y < 0 means they've left the top of the screen, but we give some buffer room
+        occupiedPositionsRef.current[col] = occupiedPositionsRef.current[col].filter(b => b.y > -20);
+      }
+      
 
   // Timer countdown for 2 minutes of continuous play
   useEffect(() => {
@@ -214,7 +284,22 @@ const BubblePop = ({ onBack }) => {
     
     // Remove the bubble
     setBubbles(prev => prev.filter(b => b.id !== bubble.id));
+
+    // Also remove the bubble from occupied positions grid for better tracking
+    const gridX = Math.floor(bubble.x / (100 / GRID_COLS));
+    const safeGridX = Math.max(0, Math.min(GRID_COLS - 1, gridX));
     
+    // Calculate bubble width in grid cells
+    const bubbleWidthInCells = Math.ceil((bubble.size / (window.innerWidth * 0.8)) * GRID_COLS);
+    const halfBubbleWidth = Math.floor(bubbleWidthInCells / 2);
+    
+    // Clear this bubble from the grid in all cells it might occupy
+    for (let i = Math.max(0, safeGridX - halfBubbleWidth); 
+         i <= Math.min(GRID_COLS - 1, safeGridX + halfBubbleWidth); i++) {
+      // Remove any entries at this approximate position
+      occupiedPositionsRef.current[i] = occupiedPositionsRef.current[i].filter(b => Math.abs(b.y - bubble.y) > 10);
+    }
+
     // Handle scoring and feedback
     if (isCorrect) {
       // Add bonus points for correct pops
@@ -402,7 +487,7 @@ const BubblePop = ({ onBack }) => {
                   animate={{
                     y: '-20%', // Move to above the screen
                     x: [`${bubble.x}%`, `${bubble.x - 5 + Math.random() * 10}%`, `${bubble.x + 5 + Math.random() * 10}%`, `${bubble.x}%`], // Gentle zigzag movement
-                    opacity: [0.7, 1, 0.7]
+                    opacity: [0.8, 1, 0.8]
                   }}
                   exit={{ 
                     opacity: 0, 
@@ -410,7 +495,7 @@ const BubblePop = ({ onBack }) => {
                     transition: { duration: 0.3 }
                   }}
                   transition={{ 
-                    y: { duration: 15 / bubble.speed, ease: "linear" },
+                    y: { duration: 12 / bubble.speed, ease: "linear" },
                     x: { duration: 8, times: [0, 0.33, 0.66, 1], ease: "easeInOut" },
                     opacity: { duration: 15 / bubble.speed, times: [0, 0.5, 1], ease: "linear" }
                   }}
