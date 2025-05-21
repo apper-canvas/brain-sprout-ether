@@ -150,7 +150,7 @@ const BubblePop = ({ onBack }) => {
              i <= Math.min(GRID_COLS - 1, gridX + halfBubbleWidth); i++) {
           // Only check for bubbles near the bottom area where new bubbles appear
           // This is crucial for preventing overlaps at bubble generation
-          const bottomBubbles = occupiedPositionsRef.current[i].filter(b => b === '100vh');
+          const bottomBubbles = occupiedPositionsRef.current[i].filter(b => b.y === '100vh');
           
           if (bottomBubbles.length > 0) {
             positionIsFree = false;
@@ -173,7 +173,7 @@ const BubblePop = ({ onBack }) => {
       
       // Less strict check - just make sure immediate position isn't too crowded
       // Check bubbles positioned at the very bottom where new bubbles will appear
-      const immediate = occupiedPositionsRef.current[safeGridX].filter(b => b === '100vh');
+      const immediate = occupiedPositionsRef.current[safeGridX].filter(b => b.y === '100vh');
       
       if (immediate.length < 1) {
         return { x, size };
@@ -248,7 +248,7 @@ const BubblePop = ({ onBack }) => {
       for (let col = 0; col < GRID_COLS; col++) {
         // Filter out bubbles that have moved significantly up the screen
         // y < 0 means they've left the top of the screen, but we give some buffer room
-        occupiedPositionsRef.current[col] = occupiedPositionsRef.current[col].filter(b => b.y !== '0vh');
+        occupiedPositionsRef.current[col] = occupiedPositionsRef.current[col].filter(b => b.y > 10);
       }
     }
   }, [bubblesToRemoveRef.current.size]);
@@ -532,7 +532,7 @@ const BubblePop = ({ onBack }) => {
                   onClick={() => handleBubbleTap(bubble)} 
                   onAnimationComplete={(definition) => {
                     // Only remove the bubble when it's fully off the top of the screen
-                    if (definition === "y" || definition?.y === '0vh') {
+                    if (definition === "y") {
                       bubblesToRemoveRef.current.add(bubble.id);
                     }
                    }}
@@ -540,10 +540,8 @@ const BubblePop = ({ onBack }) => {
                   // Set custom CSS variables for the sine wave animation
                   style={{ 
                     width: `${bubble.size}px`, 
-                    height: `${bubble.size}px`,
+                    height: `${bubble.size}px`, 
                     "--amplitude": `${5 + Math.random() * 15}px`, // Random amplitude between 5px and 20px
-                  }}
-                  style={{ width: `${bubble.size}px`, height: `${bubble.size}px` }}
                 >
                   <span className="text-xl font-bold">{bubble.number}</span>
                 </motion.div>
