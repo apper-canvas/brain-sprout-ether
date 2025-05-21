@@ -373,6 +373,9 @@
     100% {
       opacity: 0.8;
       transform: translateY(0%);
+    }
+  }
+
   /* Enhanced water ripple effect */
   @keyframes water-ripples {
     0% {
@@ -400,9 +403,8 @@
       background-position: 0% 50%;
     }
   }
-
-    }
-  }
+  
+  /* Water effect rules */
 
   .container-water-effect::after {
     content: '';
@@ -428,5 +430,90 @@
   @keyframes wave-fade {
     0% { opacity: 0.8; transform: scale(0.5); }
     100% { opacity: 0; transform: scale(2); }
+  }
+  
+  /* Bubble Quiz Styles */
+  .bubble-game-container {
+    position: relative;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  @keyframes float-bubble {
+    0% {
+      transform: translateY(0) translateX(0) rotate(0deg);
+    }
+    33% {
+      transform: translateY(-10px) translateX(5px) rotate(5deg);
+    }
+    66% {
+      transform: translateY(-5px) translateX(-5px) rotate(-3deg);
+    }
+    100% {
+      transform: translateY(0) translateX(0) rotate(0deg);
+    }
+  }
+  
+  .bubble-target {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(99, 102, 241, 0.8));
+    color: white;
+    box-shadow: 
+      0 0 10px rgba(59, 130, 246, 0.5),
+      inset 0 0 8px rgba(255, 255, 255, 0.8);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+    animation: float-bubble 4s ease-in-out infinite;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+  }
+  
+  .bubble-non-target {
+    background: linear-gradient(135deg, rgba(209, 213, 219, 0.8), rgba(156, 163, 175, 0.8));
+    color: #1f2937;
+    box-shadow: 
+      0 0 10px rgba(156, 163, 175, 0.5),
+      inset 0 0 8px rgba(255, 255, 255, 0.8);
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+    animation: float-bubble 5s ease-in-out infinite;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+  }
+  
+  .bubble-target:hover, .bubble-non-target:hover {
+    transform: scale(1.05);
+    transition: transform 0.2s ease;
+  }
+  
+  /* Dark mode styles for bubbles */
+  .dark .bubble-target {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.9), rgba(79, 70, 229, 0.9));
+    box-shadow: 
+      0 0 15px rgba(59, 130, 246, 0.7),
+      inset 0 0 8px rgba(255, 255, 255, 0.6);
+  }
+  
+  .dark .bubble-non-target {
+    background: linear-gradient(135deg, rgba(75, 85, 99, 0.9), rgba(55, 65, 81, 0.9));
+    color: #f3f4f6;
+    box-shadow: 
+      0 0 10px rgba(75, 85, 99, 0.7),
+      inset 0 0 8px rgba(255, 255, 255, 0.4);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Popping animation */
+  @keyframes pop-bubble {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.3);
+      opacity: 0.7;
+    }
+    100% {
+      transform: scale(0);
+      opacity: 0;
+    }
+  }
+  
+  .bubble-popped {
+    animation: pop-bubble 0.5s forwards;
   }
 }
