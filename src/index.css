@@ -375,7 +375,19 @@
     animation: bubble-pop 0.3s ease-out forwards;
   }
   
-  /* Bubble float animation */
+  /* Bubble float animation - modified for bottom to top movement */
+  @keyframes bubble-float-upward {
+    0% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-300%);
+    }
+    100% {
+      transform: translateY(-600%);
+    }
+  }
+  
   @keyframes bubble-float {
     0% {
       transform: translateY(0) translateX(0);

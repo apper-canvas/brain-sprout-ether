@@ -25,6 +25,9 @@ const BubblePop = ({ onBack }) => {
   const [timeRemaining, setTimeRemaining] = useState(120); // 2 minutes in seconds
   const [requiredPops, setRequiredPops] = useState(5);
   const bubblesToRemoveRef = useRef(new Set());
+  // Track occupied positions to prevent overlap
+  const occupiedPositionsRef = useRef({});
+  const playAreaRef = useRef(null);
 
   // Initialize game
   const startGame = () => {
@@ -43,19 +46,43 @@ const BubblePop = ({ onBack }) => {
   };
 
   // Generate random bubbles based on current level
-  const generateBubbles = useCallback(() => {
+  const generateBubbles = useCallback(() => {    
     // Clear existing bubbles
     setBubbles([]);
+    // Reset occupied positions
+    occupiedPositionsRef.current = {};
     
     // Create a starter set of bubbles (will be continued by the useEffect)
     const initialBubbles = Array.from({ length: Math.min(5, level + 2) }, () => {
       // Generate random number between 1 and 100
       const num = Math.floor(Math.random() * 100) + 1;
-      // Generate random x position along the width (covering 80% of the screen with 10% margin on each side)
-      const randomXPos = 5 + Math.random() * 90;
+      
+      // Find a free position for the bubble
+      const { x, size } = findFreePosition(40, 60); // Size between 40-60px
+      
+      // Calculate x position as percentage
+      const randomXPos = x;
+      
+      // Calculate a random speed based on level
+      const speed = 1 + Math.random() * (level * 0.3);
+      
+      // Reserve this position
+      const gridX = Math.floor(x / 10); // Convert to grid cell (0-10)
+      if (!occupiedPositionsRef.current[gridX]) {
+        occupiedPositionsRef.current[gridX] = [];
+      }
+      
+      // Add the bubble to occupied positions with its size
+      const bubbleWidth = size / 100; // Convert to percentage units (assuming container is 100%)
+      const startGrid = Math.max(0, Math.floor((x - bubbleWidth/2) / 10));
+      const endGrid = Math.min(9, Math.floor((x + bubbleWidth/2) / 10));
+      
+      for (let i = startGrid; i <= endGrid; i++) {
+        occupiedPositionsRef.current[i].push({ id: Date.now() + Math.random(), y: 100 });
+      }
 
       return {
-        id: Date.now() + Math.random(),
+        id: Date.now() + Math.random() + num,
         number: num,
         isOdd: num % 2 !== 0,
         x: randomXPos, // Random position along the width
@@ -67,21 +94,63 @@ const BubblePop = ({ onBack }) => {
     setBubbles(initialBubbles);
   }, [level]);
 
+  // Function to find a free position for new bubbles
+  const findFreePosition = (minSize, maxSize) => {
+    // Generate random size first
+    const size = Math.random() * (maxSize - minSize) + minSize;
+    
+    // Try up to 10 times to find a free position
+    for (let attempt = 0; attempt < 10; attempt++) {
+      // Generate random x position (5-95% to keep bubbles fully visible)
+      const x = 5 + Math.random() * 90;
+      
+      // Check if this position is free
+      const gridX = Math.floor(x / 10);
+      const bubbleWidth = size / 100; // Size as percentage of container
+      
+      // Check surrounding grid cells too based on bubble size
+      const startGrid = Math.max(0, Math.floor((x - bubbleWidth/2) / 10));
+      const endGrid = Math.min(9, Math.floor((x + bubbleWidth/2) / 10));
+      
+      let positionIsFree = true;
+      for (let i = startGrid; i <= endGrid; i++) {
+        if (occupiedPositionsRef.current[i] && occupiedPositionsRef.current[i].length > 0) {
+          // Check if any bubbles are too close to the bottom
+          const bottomBubbles = occupiedPositionsRef.current[i].filter(
+            b => b.y > 80 // Only check bubbles in the bottom 20% of the container
+          );
+          if (bottomBubbles.length > 0) {
+            positionIsFree = false;
+            break;
+          }
+        }
+      }
+      
+      if (positionIsFree) {
+        return { x, size };
+      }
+    }
+    
+    // If all attempts failed, just return a random position anyway
+    return { 
+      x: 5 + Math.random() * 90,
+      size: Math.random() * (maxSize - minSize) + minSize
+    };
+  };
+
   // Continuously generate new bubbles
   useEffect(() => {
     if (gameActive && bubbles.length < Math.min(Math.max(10, level + 9), 15)) {
       const timer = setInterval(() => { 
         if (gameActive && !gameOver) {
-          // Generate random number between 1 and 100
-          const num = Math.floor(Math.random() * 100) + 1; 
-          // Generate random x position along the bottom of the screen
-          const randomXPos = 5 + Math.random() * 90;
+          const num = Math.floor(Math.random() * 100) + 1;
+          const { x, size } = findFreePosition(40, 60);
 
           const newBubble = {
             id: Date.now(),
             number: num,
             isOdd: num % 2 !== 0,
-            x: randomXPos, // Random position along the bottom
+            x: x, // Position from findFreePosition
             y: 110, // Start below the bottom edge of the game screen
             size: Math.random() * 20 + 40, // Size between 40-60px for variety
             speed: 2 + Math.random() * (level * 0.5),
@@ -89,7 +158,7 @@ const BubblePop = ({ onBack }) => {
           setBubbles(prev => [...prev, newBubble]);
         }
       }, 500); // Generate a new bubble every 0.5 seconds
-      
+
       return () => clearInterval(timer);
     }
   }, [bubbles.length, gameActive, gameOver, level]);
@@ -101,7 +170,13 @@ const BubblePop = ({ onBack }) => {
       setBubbles(prev => prev.filter(b => !bubblesIdsToRemove.includes(b.id)));
       
       // Clear the set after processing
-      bubblesToRemoveRef.current.clear();
+      bubblesToRemoveRef.current = new Set();
+      
+      // Also clean up old entries in occupiedPositionsRef
+      // This helps prevent memory leaks and keeps collision detection accurate
+      Object.keys(occupiedPositionsRef.current).forEach(gridX => {
+        occupiedPositionsRef.current[gridX] = occupiedPositionsRef.current[gridX].filter(b => b.y > -20);
+      });
     }
   }, [bubblesToRemoveRef.current.size]);
 
@@ -270,7 +345,7 @@ const BubblePop = ({ onBack }) => {
       {/* Game Area */}
       {gameActive && (
         <div className="card p-6 mb-6 relative overflow-hidden min-h-[500px]">
-          {/* Game stats */}
+          {/* Game stats row */}
           <div className="flex justify-between items-center mb-4 relative z-10">
             <div className="flex flex-col md:flex-row md:space-x-4">
               <div className="bg-primary-light/20 dark:bg-primary-dark/30 px-3 py-1 rounded-full mb-2 md:mb-0">
@@ -314,14 +389,14 @@ const BubblePop = ({ onBack }) => {
           </div>
           
           {/* Bubble play area */}
-          <BubbleZone title={`POP ${currentRule.toUpperCase()} NUMBERS!`}>
+          <BubbleZone title={`POP ${currentRule.toUpperCase()} NUMBERS!`} ref={playAreaRef}>
             <AnimatePresence>
               {bubbles.map(bubble => (
                 <motion.div
                   key={bubble.id}
                   initial={{ x: `${bubble.x}%`, y: `${bubble.y}%`, opacity: 0.7 }}
                   animate={{
-                    y: ["110%", "-20%"], // Start from below the screen, end above it
+                    y: `${bubble.y}%`, // Start below the screen
                     x: [`${bubble.x}%`, `${bubble.x - 10 + Math.random() * 20}%`], // Gentle side-to-side movement
                     opacity: [0.7, 1, 0.7]
                   }}
@@ -331,7 +406,8 @@ const BubblePop = ({ onBack }) => {
                   onAnimationComplete={(definition) => {
                     // Only remove the bubble when it's fully off the top of the screen
                     if (definition === "y" || (definition && definition.y === "-20%")) {
-                      bubblesToRemoveRef.current.add(bubble.id);
+                      // This will be handled by the exit animation for bubbles that reach the top
+                      // bubblesToRemoveRef.current.add(bubble.id);
                     }
                    }}
                   className="bubble absolute cursor-pointer"
