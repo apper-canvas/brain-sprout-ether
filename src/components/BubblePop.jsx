@@ -375,6 +375,22 @@ const BubblePop = ({ onBack }) => {
   // Determine if time is running low (less than 30 seconds)
   const isTimeRunningLow = timeRemaining <= 30;
 
+  // Create random path for bubble movement
+  const createRandomPath = (bubble) => {
+    const points = [];
+    const numPoints = Math.floor(Math.random() * 6) + 5; // 5-10 points
+    
+    for (let i = 0; i < numPoints; i++) {
+      // Create random variations around the starting position
+      const xOffset = (Math.random() * 40 - 20) * (bubble.speedX > 0 ? 1 : -1);
+      const yOffset = (Math.random() * 40 - 20) * (bubble.speedY > 0 ? 1 : -1);
+      
+      points.push(`calc(${bubble.x}% + ${xOffset}px)`, `calc(${bubble.y}% + ${yOffset}px)`);
+    }
+    
+    return points;
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       {/* Header */}
@@ -496,24 +512,8 @@ const BubblePop = ({ onBack }) => {
                 // while maintaining the consistent upward movement speed
                 
                 // Calculate random direction changes for more natural movement
-                // Create 5-10 random waypoints for each bubble to create natural paths
-                const createRandomPath = (bubble) => {
-                  const points = [];
-                  const numPoints = Math.floor(Math.random() * 6) + 5; // 5-10 points
-                  
-                  for (let i = 0; i < numPoints; i++) {
-                    // Create random variations around the starting position
-                    const xOffset = (Math.random() * 40 - 20) * (bubble.speedX > 0 ? 1 : -1);
-                    const yOffset = (Math.random() * 40 - 20) * (bubble.speedY > 0 ? 1 : -1);
-                    
-                    points.push(`calc(${bubble.x}% + ${xOffset}px)`, `calc(${bubble.y}% + ${yOffset}px)`);
-                  }
-                  
-                  return points;
-                };
-                
+                // Get random path for this bubble
                 const randomPath = createRandomPath(bubble);
-                
                 <motion.div
                   key={bubble.id}
                   initial={{ 
