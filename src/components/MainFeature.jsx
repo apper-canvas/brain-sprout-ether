@@ -140,6 +140,13 @@ const subjects = [
     icon: 'gamepad',
     color: 'bg-pink-100 dark:bg-pink-800 text-pink-600 dark:text-pink-200',
     isGame: true
+  },
+  {
+    id: 'bubble-pop',
+    name: 'Bubble Pop: Odd & Even Numbers',
+    icon: 'gamepad',
+    color: 'bg-pink-100 dark:bg-pink-800 text-pink-600 dark:text-pink-200',
+    isGame: true
   }
 ];
 
@@ -174,7 +181,12 @@ const MainFeature = ({ grade }) => {
       // Start the bubble game
       setPlayingBubbleGame(true);
       return;
+    } else if (subject.id === 'bubble-pop') {
+      // Start the bubble game
+      setPlayingBubbleGame(true);
+      return;
     }
+
 
   };
 
@@ -334,7 +346,7 @@ const MainFeature = ({ grade }) => {
                   <p className="mt-2 text-sm opacity-80">
                     {subject.questions ? 
                       `${subject.questions.length} questions` : 
-                      subject.isGame ? 'Interactive game' : '0 questions'}
+                      subject.isGame ? 'Interactive Game' : '0 questions'}
                   </p>
                 </motion.div>
               ))}
@@ -353,7 +365,7 @@ const MainFeature = ({ grade }) => {
             
             <div className="py-5">
               <div className="text-4xl font-bold mb-3"> 
-                Your Score: {score}/{selectedSubject?.questions?.length || 0}
+                Your Score: {score}/{selectedSubject?.questions?.length ?? 0}
               </div>
               
               <div className="flex justify-center space-x-2 mb-8">
@@ -451,7 +463,7 @@ const MainFeature = ({ grade }) => {
             >
               <div className="flex justify-between items-center mb-4">
                 <span className="text-surface-500 dark:text-surface-400">
-                  Question {currentQuestion + 1} of {selectedSubject?.questions?.length || 0}
+                  Question {currentQuestion + 1} of {selectedSubject?.questions?.length ?? 0}
                 </span>
 
                 {selectedSubject.id === 'math' && (
@@ -555,7 +567,7 @@ const MainFeature = ({ grade }) => {
                     onClick={handleNextQuestion}
                     className="btn-primary relative z-10"
                   >
-                    {currentQuestion < (selectedSubject?.questions?.length - 1 || 0)
+                    {currentQuestion < ((selectedSubject?.questions?.length ?? 0) - 1)
                       ? "Next Question" 
                       : "See Results"}
                   </motion.button>
