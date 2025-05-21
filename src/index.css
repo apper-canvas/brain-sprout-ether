@@ -251,4 +251,73 @@
     0% { opacity: 0.8; transform: scale(0.5); }
     100% { opacity: 0; transform: scale(2); }
   }  
+  
+  /* Bubble Game Styles */
+  .bubble {
+    background: radial-gradient(
+      circle at 30% 30%,
+      rgba(255, 255, 255, 0.8) 0%,
+      rgba(173, 216, 230, 0.7) 30%,
+      rgba(100, 149, 237, 0.8) 100%
+    );
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(100, 149, 237, 0.5),
+                inset 0 0 15px rgba(255, 255, 255, 0.8);
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    backdrop-filter: blur(2px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: rgba(0, 0, 100, 0.8);
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+    z-index: 10;
+  }
+  
+  .bubble:hover {
+    box-shadow: 0 0 15px rgba(100, 149, 237, 0.8),
+                inset 0 0 25px rgba(255, 255, 255, 0.9);
+  }
+  
+  .bubble:active {
+    cursor: grabbing;
+  }
+  
+  .bubble-container {
+    flex: 1;
+    min-height: 120px;
+    border-radius: 16px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  
+  .odd-container {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 99, 71, 0.2),
+      rgba(255, 99, 71, 0.4)
+    );
+    border: 2px dashed rgba(255, 99, 71, 0.6);
+  }
+  
+  .even-container {
+    background: linear-gradient(
+      135deg,
+      rgba(30, 144, 255, 0.2),
+      rgba(30, 144, 255, 0.4)
+    );
+    border: 2px dashed rgba(30, 144, 255, 0.6);
+  }
+  
+  .odd-container:hover, .even-container:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
 }

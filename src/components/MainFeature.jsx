@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
+import BubbleGame from './BubbleGame';
 
 const BookIcon = getIcon('book');
 const CalculatorIcon = getIcon('calculator');
@@ -13,6 +14,7 @@ const ArrowLeftIcon = getIcon('arrow-left');
 const StarIcon = getIcon('star');
 const TimerIcon = getIcon('timer');
 const RotateCcwIcon = getIcon('rotate-ccw');
+const GamepadIcon = getIcon('gamepad');
 
 // Sample data for educational questions
 const subjects = [
@@ -131,6 +133,13 @@ const subjects = [
         explanation: "Doctors help people when they are sick"
       }
     ]
+  },
+  {
+    id: 'bubble-game',
+    name: 'Odd & Even Bubbles',
+    icon: 'gamepad',
+    color: 'bg-pink-100 dark:bg-pink-800 text-pink-600 dark:text-pink-200',
+    isGame: true
   }
 ];
 
@@ -146,6 +155,7 @@ const MainFeature = ({ grade }) => {
   const [stars, setStars] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
   const [timerActive, setTimerActive] = useState(false);
+  const [playingBubbleGame, setPlayingBubbleGame] = useState(false);
   const timerRef = useRef(null);
 
   const handleSubjectSelect = (subject) => {
@@ -160,8 +170,12 @@ const MainFeature = ({ grade }) => {
     if (subject.id === 'math') {
       setTimeLeft(30);
       setTimerActive(true);
+    } else if (subject.id === 'bubble-game') {
+      // Start the bubble game
+      setPlayingBubbleGame(true);
+      return;
     }
-    
+
   };
 
   const handleBackToSubjects = () => {
@@ -173,6 +187,7 @@ const MainFeature = ({ grade }) => {
     setTimeLeft(30);
     setWaterEffect(false);
     clearInterval(timerRef.current);
+    setPlayingBubbleGame(false);
   };
 
   const handleAnswerSelect = (answer) => {
@@ -283,7 +298,9 @@ const MainFeature = ({ grade }) => {
   return (
     <div className="mb-16">
       <AnimatePresence mode="wait">
-        {!selectedSubject ? (
+        {playingBubbleGame ? (
+          <BubbleGame onBack={handleBackToSubjects} />
+        ) : !selectedSubject ? (
           <motion.div
             key="subject-selector"
             initial={{ opacity: 0, y: 20 }}
