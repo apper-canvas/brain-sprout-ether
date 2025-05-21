@@ -45,7 +45,7 @@ const BubblePop = ({ onBack }) => {
     
     // Generate new bubbles
     const newBubbles = [];
-    const numBubbles = Math.min(5 + level, 12); // More bubbles as level increases, max 12
+    const numBubbles = Math.min(8 + level, 15); // More bubbles as level increases, max 15
     
     for (let i = 0; i < numBubbles; i++) {
       const maxNum = Math.min(level * 20, 100); // Increase max number with level, capped at 100
@@ -55,7 +55,7 @@ const BubblePop = ({ onBack }) => {
         id: Date.now() + i,
         number: num,
         isOdd: num % 2 !== 0,
-        x: Math.random() * 90 + 5, // % across full screen width
+        x: Math.random() * 100, // % across the entire screen width
         y: 110 + Math.random() * 10, // Start below the visible area
         size: Math.random() * 20 + 50, // Size between 50-70px
         speed: 2 + Math.random() * (level * 0.5) // Speed increases with level
@@ -67,14 +67,14 @@ const BubblePop = ({ onBack }) => {
 
   // Continuously generate new bubbles
   useEffect(() => {
-    if (gameActive && bubbles.length < 12) {
+    if (gameActive && bubbles.length < 15) {
       const timer = setTimeout(() => {
         if (gameActive && !gameOver) {
           const newBubble = {
             id: Date.now(),
             number: Math.floor(Math.random() * Math.min(level * 20, 100)) + 1,
             isOdd: false, // Will be set properly below
-            x: Math.random() * 90 + 5, // Full screen width
+            x: Math.random() * 100, // Full screen width
             y: 110 + Math.random() * 20,
             size: Math.random() * 20 + 50,
             speed: 2 + Math.random() * (level * 0.5)
@@ -83,7 +83,7 @@ const BubblePop = ({ onBack }) => {
           
           setBubbles(prev => [...prev, newBubble]);
         }
-      }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
+      }, 800 + Math.random() * 800); // Random delay between 0.8-1.6 seconds
       
       return () => clearTimeout(timer);
     }
