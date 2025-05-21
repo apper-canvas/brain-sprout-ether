@@ -378,19 +378,19 @@
   /* Bubble float animation - modified for bottom to top movement */
 @keyframes bubble-float-upward {
     0% {
-      transform: translateY(0);
+      transform: translateY(0) translateX(0);
     }
     25% {
-      transform: translateY(-175%) translateX(10px);
+      transform: translateY(-200%) translateX(5px);
     }
     50% {
-      transform: translateY(-350%) translateX(-10px);
+      transform: translateY(-400%) translateX(-5px);
     }
     75% {
-      transform: translateY(-525%) translateX(10px);
+      transform: translateY(-600%) translateX(5px);
     }
     100% {
-      transform: translateY(-700%);
+      transform: translateY(-800%);
       opacity: 0;
     }
   }
