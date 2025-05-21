@@ -209,7 +209,6 @@ const BubblePop = ({ onBack }) => {
                i <= Math.min(GRID_COLS - 1, safeGridX + halfBubbleWidth); i++) {
             occupiedPositionsRef.current[i].push({
               id: Date.now() + Math.random(),
-              id: Date.now() + Math.random(), 
               y: '100vh', // Bottom of container
             });
           }
@@ -485,6 +484,13 @@ const BubblePop = ({ onBack }) => {
           <BubbleZone title={`POP ${currentRule.toUpperCase()} NUMBERS!`} ref={playAreaRef}>
             <AnimatePresence>
               {bubbles.map(bubble => (
+                // Calculate random values for each bubble's animation
+                // - Random amplitude between 10px and 25px
+                // - Random phase delay between 0s and 2s
+                // - Random duration variation between 2.5s and 3.5s
+                // These values create natural variation in the side-to-side motion
+                // while maintaining the consistent upward movement speed
+                
                 <motion.div
                   key={bubble.id}
                   initial={{ 
@@ -492,9 +498,21 @@ const BubblePop = ({ onBack }) => {
                     y: '100vh',
                     opacity: 0.9
                   }}
+                  // Use a complex animation that combines:
+                  // 1. Linear upward movement (y-axis)
+                  // 2. Sine wave side-to-side movement (x-axis)
+                  // 3. Subtle opacity changes
                   animate={{
                     y: '0vh', // Move straight up to the top of the screen
-                    x: `${bubble.x}%`, // Keep x position fixed for straight path
+                    // Animate with a sine wave pattern around the base x position
+                    x: [
+                      `${bubble.x}%`, 
+                      `calc(${bubble.x}% + ${5 + Math.random() * 15}px)`, 
+                      `${bubble.x}%`, 
+                      `calc(${bubble.x}% - ${5 + Math.random() * 15}px)`, 
+                      `${bubble.x}%`
+                    ],
+                    scale: [1, 1.02, 0.98, 1.01, 1],
                     opacity: [0.9, 1, 0.8] // Keep the opacity animation
                   }} 
                   exit={{ 
@@ -504,7 +522,12 @@ const BubblePop = ({ onBack }) => {
                   }}
                   transition={{ 
                     y: { duration: 10, ease: "linear" }, // Fixed 10 seconds for straight upward movement
-                    opacity: { duration: 10, times: [0, 0.5, 1], ease: "linear" } // Matched opacity animation duration
+                    x: { 
+                      duration: 2.5 + Math.random() * 1, // Random duration between 2.5s and 3.5s
+                      repeat: Infinity, // Repeat indefinitely during the 10s upward motion
+                      ease: "easeInOut" // Smooth sine-like motion
+                    },
+                    opacity: { duration: 10, times: [0, 0.5, 1], ease: "linear" }, // Matched opacity animation duration
                   }}
                   onClick={() => handleBubbleTap(bubble)} 
                   onAnimationComplete={(definition) => {
@@ -513,7 +536,13 @@ const BubblePop = ({ onBack }) => {
                       bubblesToRemoveRef.current.add(bubble.id);
                     }
                    }}
-                  className="bubble absolute cursor-pointer"
+                  className="bubble absolute cursor-pointer" 
+                  // Set custom CSS variables for the sine wave animation
+                  style={{ 
+                    width: `${bubble.size}px`, 
+                    height: `${bubble.size}px`,
+                    "--amplitude": `${5 + Math.random() * 15}px`, // Random amplitude between 5px and 20px
+                  }}
                   style={{ width: `${bubble.size}px`, height: `${bubble.size}px` }}
                 >
                   <span className="text-xl font-bold">{bubble.number}</span>

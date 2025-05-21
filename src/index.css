@@ -388,9 +388,38 @@
       opacity: 0.2;
     }
   }
+
+  /* Sine wave animation for horizontal bubble movement */
+  @keyframes bubble-float-sine-wave {
+    0% {
+      transform: translateX(0px);
+    }
+    25% {
+      transform: translateX(var(--amplitude, 15px));
+    }
+    50% {
+      transform: translateX(0px);
+    }
+    75% {
+      transform: translateX(calc(var(--amplitude, 15px) * -1));
+    }
+    100% {
+      transform: translateX(0px);
+    }
+  }
   
   .bubble-animated {
-    animation: bubble-float-upward 10s linear forwards;
+    animation: 
+      bubble-float-upward 10s linear forwards,
+      bubble-float-sine-wave 3s ease-in-out infinite;
+    animation-delay: 0s, var(--delay, 0s);
+  }
+  
+  /* Add animation properties to the bubble */
+  .bubble {
+    --amplitude: 15px;
+    --delay: 0s;
+    --duration: 3s;
   }
   
   @keyframes bubble-float {
