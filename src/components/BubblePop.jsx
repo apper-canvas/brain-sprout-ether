@@ -262,7 +262,7 @@ const BubblePop = ({ onBack }) => {
                      opacity: [0.7, 1, 0.7] 
                    }}
                    exit={{ scale: 1.5, opacity: 0 }}
-                   transition={{ y: { duration: 8 / bubble.speed, ease: "linear" }, x: { duration: 3 + Math.random() * 4, repeat: Infinity, repeatType: "mirror", ease: ["easeInOut", "easeOutIn"] }, opacity: { duration: 8 / bubble.speed, times: [0, 0.5, 1], ease: "linear" } }}
+                  transition={{ y: { duration: 8 / bubble.speed, ease: "linear" }, x: { duration: 3 + Math.random() * 4, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }, opacity: { duration: 8 / bubble.speed, times: [0, 0.5, 1], ease: "linear" } }}
                    onClick={() => handleBubbleTap(bubble)} 
                    className="bubble absolute cursor-pointer"
                   style={{ width: `${bubble.size}px`, height: `${bubble.size}px` }}
