@@ -7,8 +7,8 @@ const BubbleZone = forwardRef(({ children, title }, ref) => {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       ref={ref}
-      className="bubble-zone relative h-[400px] w-full rounded-lg overflow-hidden shadow-lg"
-      style={{ position: 'relative' }}
+      className="bubble-zone relative h-[500px] w-full rounded-lg overflow-hidden shadow-lg"
+      style={{ position: 'relative', overflow: 'hidden' }}
     >
       {title && (
         <div className="absolute top-3 left-0 right-0 z-10 text-center">

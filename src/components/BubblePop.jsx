@@ -58,13 +58,13 @@ const BubblePop = ({ onBack }) => {
       const num = Math.floor(Math.random() * 100) + 1;
       
       // Find a free position for the bubble
-      const { x, size } = findFreePosition(40, 60); // Size between 40-60px
+      const { x, size } = findFreePosition(40, 70); // Size between 40-70px
       
       // Calculate x position as percentage
       const randomXPos = x;
       
       // Calculate a random speed based on level
-      const speed = 1 + Math.random() * (level * 0.3);
+      const speed = 2 + Math.random() * (level * 0.5);
       
       // Reserve this position
       const gridX = Math.floor(x / 10); // Convert to grid cell (0-10)
@@ -86,8 +86,8 @@ const BubblePop = ({ onBack }) => {
         number: num,
         isOdd: num % 2 !== 0,
         x: randomXPos, // Random position along the width
-        y: 110, // Start below the bottom edge of the game screen
-        size: Math.random() * 20 + 50, // Size between 50-70px
+        y: 100, // Start at the bottom edge of the game screen
+        size, // Use the size from findFreePosition
         speed: 1 + Math.random() * (level * 0.3), // Slightly slower speed for better visibility
       };
     });
@@ -109,7 +109,7 @@ const BubblePop = ({ onBack }) => {
       const bubbleWidth = size / 100; // Size as percentage of container
       
       // Check surrounding grid cells too based on bubble size
-      const startGrid = Math.max(0, Math.floor((x - bubbleWidth/2) / 10));
+      const startGrid = Math.max(0, Math.floor((x - bubbleWidth) / 10));
       const endGrid = Math.min(9, Math.floor((x + bubbleWidth/2) / 10));
       
       let positionIsFree = true;
@@ -151,8 +151,8 @@ const BubblePop = ({ onBack }) => {
             number: num,
             isOdd: num % 2 !== 0,
             x: x, // Position from findFreePosition
-            y: 110, // Start below the bottom edge of the game screen
-            size: Math.random() * 20 + 40, // Size between 40-60px for variety
+            y: 100, // Start at the bottom edge of the game screen
+            size, // Use the size from findFreePosition
             speed: 2 + Math.random() * (level * 0.5),
           };
           setBubbles(prev => [...prev, newBubble]);
@@ -394,20 +394,31 @@ const BubblePop = ({ onBack }) => {
               {bubbles.map(bubble => (
                 <motion.div
                   key={bubble.id}
-                  initial={{ x: `${bubble.x}%`, y: `${bubble.y}%`, opacity: 0.7 }}
+                  initial={{ 
+                    x: `${bubble.x}%`, 
+                    y: '100%', 
+                    opacity: 0.7 
+                  }}
                   animate={{
-                    y: `${bubble.y}%`, // Start below the screen
-                    x: [`${bubble.x}%`, `${bubble.x - 10 + Math.random() * 20}%`], // Gentle side-to-side movement
+                    y: '-20%', // Move to above the screen
+                    x: [`${bubble.x}%`, `${bubble.x - 5 + Math.random() * 10}%`, `${bubble.x + 5 + Math.random() * 10}%`, `${bubble.x}%`], // Gentle zigzag movement
                     opacity: [0.7, 1, 0.7]
                   }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ y: { duration: 10 / bubble.speed, ease: "linear" }, x: { duration: 4 + Math.random() * 3, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }, opacity: { duration: 10 / bubble.speed, times: [0, 0.5, 1], ease: "linear" } }}
+                  exit={{ 
+                    opacity: 0, 
+                    scale: 0.8, 
+                    transition: { duration: 0.3 }
+                  }}
+                  transition={{ 
+                    y: { duration: 15 / bubble.speed, ease: "linear" },
+                    x: { duration: 8, times: [0, 0.33, 0.66, 1], ease: "easeInOut" },
+                    opacity: { duration: 15 / bubble.speed, times: [0, 0.5, 1], ease: "linear" }
+                  }}
                   onClick={() => handleBubbleTap(bubble)} 
                   onAnimationComplete={(definition) => {
                     // Only remove the bubble when it's fully off the top of the screen
-                    if (definition === "y" || (definition && definition.y === "-20%")) {
-                      // This will be handled by the exit animation for bubbles that reach the top
-                      // bubblesToRemoveRef.current.add(bubble.id);
+                    if (definition === "y" || definition?.y === '-20%') {
+                      bubblesToRemoveRef.current.add(bubble.id);
                     }
                    }}
                   className="bubble absolute cursor-pointer"
