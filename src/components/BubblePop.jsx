@@ -189,7 +189,8 @@ const BubblePop = ({ onBack }) => {
 
   // Continuously generate new bubbles
   useEffect(() => {
-    if (gameActive && bubbles.length < Math.min(Math.max(10, level + 9), 15)) {
+    // Only generate bubbles if the game is active, not over, time remains, and we're under the bubble limit
+    if (gameActive && !gameOver && timeRemaining > 0 && bubbles.length < Math.min(Math.max(10, level + 9), 15)) {
       const timer = setInterval(() => { 
         if (gameActive && !gameOver) {
           const num = Math.floor(Math.random() * 100) + 1;
@@ -230,7 +231,7 @@ const BubblePop = ({ onBack }) => {
 
       return () => clearInterval(timer);
     }
-  }, [bubbles.length, gameActive, gameOver, level]);
+  }, [bubbles.length, gameActive, gameOver, level, timeRemaining]);
 
   // Handle bubbles that need to be removed after animation completes
   useEffect(() => {
@@ -260,9 +261,14 @@ const BubblePop = ({ onBack }) => {
           if (prev <= 1) {
             // Time's up - end the game
             setGameOver(true);
-            setGameActive(false);
+            setGameActive(false); 
             clearInterval(timer);
-            toast.info("Time's up! Game over.");
+            
+            // Calculate stars based on score and level when time runs out
+            if (score >= 150) setStars(3);
+            else if (score >= 100) setStars(2);
+            else if (score >= 50) setStars(1);
+            else setStars(0);
             return 0;
           }
           return prev - 1;
