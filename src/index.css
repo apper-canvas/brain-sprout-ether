@@ -230,6 +230,7 @@
     }
   }
 
+  .container-water-effect::after {
     position: absolute;
     top: 0;
     left: 0;
@@ -248,5 +249,6 @@
   @keyframes wave-fade {
     0% { opacity: 0.8; transform: scale(0.5); }
     100% { opacity: 0; transform: scale(2); }
+  }
   }
 }
