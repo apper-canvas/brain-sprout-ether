@@ -67,7 +67,7 @@ const BubblePop = ({ onBack }) => {
   // Continuously generate new bubbles
   useEffect(() => {
     if (gameActive && bubbles.length < Math.min(Math.max(10, level + 9), 15)) {
-      const timer = setTimeout(() => { 
+      const timer = setInterval(() => { 
         if (gameActive && !gameOver) {
           // Generate random number between 1 and 100
           const num = Math.floor(Math.random() * 100) + 1; 
@@ -85,9 +85,9 @@ const BubblePop = ({ onBack }) => {
           };
           setBubbles(prev => [...prev, newBubble]);
         }
-      }, 600 + Math.random() * 1200); // Random delay between 0.6-1.8 seconds for one-by-one appearance
+      }, 500); // Generate a new bubble every 0.5 seconds
       
-      return () => clearTimeout(timer);
+      return () => clearInterval(timer);
     }
   }, [bubbles.length, gameActive, gameOver, level]);
 
